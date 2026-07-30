@@ -596,3 +596,52 @@ a mutated core committable. Needs to run against a copy, not the tree.
   §4 SUCCESS.
 - Next: DIAGNOSE before touching anything. Do not forward-patch — several findings share a root
   (criteria implemented by a script that was never itself tested against its criterion text).
+
+## [2026-07-31 02:20 HKT] P1a — DIAGNOSE (no code, no fixes)
+
+- branch: `initiative/2026-001-host-prototype` · phase: 2 of 8 — P1a, post-AUDIT
+- The audit produced ~12 findings. They are not 12 independent mistakes. Four roots.
+
+**Root 1 — the verification machinery was never itself verified.**
+Covers: AC1a.10 implemented as *any* stat instead of *each*; AC1a.13's liveness covering 2 of 6 key
+categories; AC1a.3's deep-freeze and fresh-module legs substituted by a source scan; AC1a.2(c) with
+no test; AC1a.8 unfalsifiable on the shipped config; the edit script reporting success for a
+no-op; the `divmod.ts` comment asserting a test that does not exist.
+Every one is the same act: a tool was written from my *reading* of a criterion and never checked
+back against the criterion's *text*, and never made to fail on purpose.
+→ **Fix: every gate tool ships with a self-test — a deliberately-violating fixture the tool must
+reject.** A checker that has never failed is not known to work. This is the mutation-gate principle
+applied one level up, and its absence is why the mutation gate itself shipped mutating comments.
+
+**Root 2 — a property was verified on the default config and assumed general.**
+Covers all three high-severity defects: `maxSegments` making `advance` step-size dependent under an
+oscillating gate; `divmod`'s domain escaping via the binary-search midpoint `lo + hi` at
+`denominator: 1`; `crossings` enumerated once from the initial state.
+The adversarial auditor found all three by generating configs (2440 fuzz cases) rather than reading
+one. I never generated a config other than the one I wrote.
+→ **Fix: every derived bound is property-tested over generated configs, not the shipped one.**
+
+**Root 3 — the phase was too big, for the second time.**
+CRITIQUE already told me P1 was too big; I split it and then built P1a — 14 criteria, a reference
+implementation, a corpus generator and five tools — in one unbroken run with no checkpoint. Errors
+from Roots 1 and 2 compounded unseen for hours. `ssot.md` names this exactly: context blowing up
+mid-phase is a ROADMAP smell, to be fixed upstream, not pushed through.
+→ **Fix: re-split P1a at ROADMAP. Core arithmetic (independently validated, keep) / gate toolchain
+(rewrite, each tool self-tested) / tuning (start over).**
+
+**Root 4 — the tuning config was authored blind, and this one is not a process defect.**
+I derived rates arithmetically ("hunger spans its range in 24 h") and never once looked at a
+trajectory. The result: health reaches zero at ~47 h, and over 30 days sixty care events differ
+from total abandonment in one stat. No amount of reading numbers would have caught that; it is a
+*felt* property, and `scope.md` already tags curve shape REQUIRES-JUDGMENT.
+→ **Fix: this root cannot be closed by a test. It needs to be seen.** That is what P1b's tuning
+instrument is for — and it is now the blocking dependency for §4 SUCCESS, not a later convenience.
+
+**REVERT assessment: not warranted.** The core simulation is not a muddied base — an independent
+fresh-context differential fuzz (2440 configs vs the 1 ms oracle, gate thresholds placed on the
+bounds) found zero divergences, and binary-search monotonicity was verified over 1252 configs. The
+arithmetic is sound. What is broken sits around it: the rulers, the tools, the numbers, the record.
+Reverting would discard the one part that was independently validated.
+
+- State now: diagnosed, nothing patched. P1a remains NOT DONE.
+- Next: human decision on re-split and on whether to bring the tuning instrument forward.
