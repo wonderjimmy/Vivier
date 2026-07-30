@@ -35,40 +35,65 @@ function start(overrides: Record<string, number> = {}): RefState {
   return { ...s, stats: { ...s.stats, ...overrides } };
 }
 
-// Short vectors start from deliberately near-threshold states so a gate can toggle inside a
-// span the 1 ms oracle can actually walk. Waiting 19 real hours for hunger to reach its gate
-// would put every gate transition out of the brute-force oracle's reach.
+// Near-threshold starting points are DERIVED FROM THE CONFIG, never hardcoded. An earlier
+// version wrote `hunger: 89900` against a gate that happened to sit at 90000; retuning moved the
+// gate to 85000 and the whole corpus stopped exercising it — the generator threw rather than
+// silently losing coverage, which is the only reason it was noticed. Tuning is data, so anything
+// positioned relative to a tuned value must be computed from it.
+const gateOf = (ruleId: string) => {
+  const rule = loaded.config.rules.find((r) => r.id === ruleId);
+  if (rule?.gate == null) throw new Error(`generate: rule "${ruleId}" has no gate`);
+  return rule.gate;
+};
+const NUDGE = 100;
+const justBelow = (ruleId: string) => gateOf(ruleId).value - NUDGE;
+const justAbove = (ruleId: string) => gateOf(ruleId).value + NUDGE;
+
+// Short vectors start just off a gate so it can toggle inside a span the 1 ms oracle can walk.
+// Waiting 40 real hours for hunger to reach its gate would put every gate transition out of the
+// brute-force oracle's reach.
 const SPECS: VectorSpec[] = [
   { id: 'zero', note: 'delta = 0', untilMs: 0, both: true },
   { id: 'one-ms', note: 'delta = 1 ms', untilMs: 1, both: true },
   { id: 'quiet-minute', note: 'one minute, no events', untilMs: 60000, both: true },
   {
     id: 'starve-gate-on', note: 'hunger crosses its gate upward: starveDamage off -> on',
-    overrides: { hunger: 89900 }, untilMs: 10 * 60000, both: true,
+    overrides: { hunger: justBelow('starveDamage') }, untilMs: 10 * 60000, both: true,
   },
   {
     id: 'starve-gate-off',
-    note: 'two feeds walk hunger down through both gates: starveDamage on->off, healthRecover off->on',
-    overrides: { hunger: 89900 },
+    note: 'feeds walk hunger down through both gates: starveDamage on->off, healthRecover off->on',
+    overrides: { hunger: justAbove('starveDamage') },
     events: [{ atMs: 3 * 60000, kind: 'feed' }, { atMs: 6 * 60000, kind: 'feed' }],
     untilMs: 10 * 60000, both: true,
   },
   {
-    id: 'recover-gate-toggle', note: 'healthRecover on -> off as hunger rises past 40000',
-    overrides: { hunger: 39900, health: 50000 }, untilMs: 10 * 60000, both: true,
+    id: 'recover-gate-toggle', note: 'healthRecover on -> off as hunger rises past its gate',
+    overrides: { hunger: justBelow('healthRecover'), health: 50000 },
+    untilMs: 10 * 60000, both: true,
   },
   {
     id: 'filth-gate-toggle', note: 'filthDamage off -> on -> off across a clean()',
-    overrides: { cleanliness: 15100, health: 60000 },
+    overrides: { cleanliness: justAbove('filthDamage'), health: 60000 },
     events: [{ atMs: 8 * 60000, kind: 'clean' }], untilMs: 12 * 60000, both: true,
   },
   {
+    id: 'obesity-gate-toggle',
+    note: 'weight crosses its gate upward under feeding, then drifts back: obesityDamage off->on->off',
+    overrides: { weight: justBelow('obesityDamage') },
+    events: [{ atMs: 2 * 60000, kind: 'feed' }, { atMs: 4 * 60000, kind: 'play' },
+             { atMs: 5 * 60000, kind: 'play' }, { atMs: 6 * 60000, kind: 'play' },
+             { atMs: 7 * 60000, kind: 'play' }],
+    untilMs: 12 * 60000, both: true,
+  },
+  {
     id: 'saturate-max', note: 'hunger arrives at its max from an interior value',
-    overrides: { hunger: 99800 }, untilMs: 10 * 60000, both: true,
+    overrides: { hunger: loaded.config.stats.hunger.max - NUDGE }, untilMs: 10 * 60000, both: true,
   },
   {
     id: 'saturate-min', note: 'happiness arrives at its min from an interior value',
-    overrides: { happiness: 200 }, untilMs: 10 * 60000, both: true,
+    overrides: { happiness: loaded.config.stats.happiness.min + NUDGE },
+    untilMs: 10 * 60000, both: true,
   },
   {
     id: 'unsorted-events', note: 'event list supplied out of order (AC1a.8 convention 1)',
@@ -80,7 +105,8 @@ const SPECS: VectorSpec[] = [
   },
   {
     id: 'event-at-crossing', note: 'an event lands exactly on an internal crossing time',
-    overrides: { hunger: 89900 }, untilMs: 10 * 60000, both: true, // events filled in below
+    overrides: { hunger: justBelow('starveDamage') },
+    untilMs: 10 * 60000, both: true, // events filled in below
   },
   {
     id: 'event-at-endpoints', note: 'events at exactly t0 and exactly untilMs (conventions 3, 4)',

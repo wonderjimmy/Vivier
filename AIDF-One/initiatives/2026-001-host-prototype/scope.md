@@ -265,6 +265,53 @@ what stops rendering from becoming the place bugs hide.
   is the most important structural implication in the initiative and is far cheaper to build in than
   to retrofit.
 
+### P1a SPLIT — amendment 3 (2026-07-31, after the AUDIT failed and DIAGNOSE found four roots)
+
+P1a was still too big: 14 criteria, a reference implementation, a corpus generator and five tools
+built in one unbroken run. Its audit failed with three high-severity defects and six criteria
+implemented weaker than written. The criteria themselves were sound; the delivery was not. The
+existing AC1a.1–AC1a.14 are unchanged and split by delivery, with new criteria added below.
+
+**P1a-1 — Core arithmetic** · owns AC1a.1–1a.8, AC1a.12. Independently validated (2440 differential
+fuzz configs vs the 1 ms oracle, zero divergences), so it is not reverted — but three defects are open:
+  - **AC1a.15 — no per-call budget may change the answer.** `advance` returns the same state for
+    any partition of `Δ`, **for every config `loadConfig` accepts** — not merely the shipped one.
+    Property-tested over ≥ 500 GENERATED configs including oscillating gates. Today a gate that
+    toggles per-millisecond exhausts `maxSegments` on one long call while succeeding when folded,
+    which is AC1a.1 broken by the guard meant to protect it. Either `loadConfig` rejects such a
+    config or `advance` survives it; a per-call segment budget that changes the answer is neither.
+  - **AC1a.16 — derived bounds are proved, not sampled.** Every bound `loadConfig` derives is
+    property-tested over generated configs, and covers **every** intermediate the core computes,
+    the binary-search midpoint `lo + hi` included. Today `divmod`'s domain guard escapes as a raw
+    `RangeError` at `denominator: 1`, and the comment in `divmod.ts` claiming a test proves
+    otherwise is false. A bound checked against one config is a sample, not a derivation.
+  - **AC1a.17 — crossing times cover the whole vector.** The crossing and saturation times stored
+    with each corpus vector are enumerated **per segment and across every event**, not once from
+    the initial state. Binary: a vector's stored times must include the moment health reaches zero.
+    Today `day-attentive` and `day-neglect` carry byte-identical crossing lists despite eighteen
+    interaction events between them.
+
+**P1a-2 — Verification toolchain** · owns AC1a.9–1a.11, AC1a.13, AC1a.14. Every tool is rewritten
+against its criterion's text rather than my reading of it, and:
+  - **AC1a.18 — every gate tool ships a self-test.** Each tool in `tools/` has a fixture that
+    deliberately violates what it checks, and the tool must reject it; the self-tests run in the
+    gate. **A checker that has never failed is not known to work** — that single omission produced
+    six of the audit's findings, including a mutation gate that mutated comments and an edit script
+    that reported success for a no-op.
+  - **AC1a.19 — no test or fixture hardcodes a tuned value.** Any value positioned relative to a
+    config threshold is computed from the config. Binary: changing a rate or a gate in
+    `tuning/default.json` and regenerating must leave the suite green or fail loudly — never
+    silently stop exercising the thing a test is named after. *(Proved necessary immediately:
+    the retune broke five tests and the corpus generator, all on hardcoded thresholds.)*
+  - **AC1a.20 — the mutation gate runs against a copy.** It must not rewrite `core/src` in the
+    working tree; an interrupted run currently leaves a mutated core committable.
+  - AC1a.10's per-stat requirement, AC1a.13's full key coverage, AC1a.3's deep-freeze and
+    fresh-module legs, and AC1a.2(c)'s own test are all part of this phase's rewrite, not optional.
+
+**Layer Coverage correction:** the Layer-1 matrix row's `stage` acceptance is **reassigned to P3**,
+where life stages are actually built. It was inherited by P1a and silently lapsed — recorded here
+rather than quietly dropped.
+
 ### P1b — Tuning instrument
 > Layers: 1 (extends) · delivers journey step 5 · *(carries the half of the original P1 INTENT that
 > its acceptance set left unencoded — found by the back-translation gate at CRITIQUE)*

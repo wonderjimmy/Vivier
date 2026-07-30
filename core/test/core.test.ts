@@ -30,6 +30,25 @@ function lcg(seed: number) {
   };
 }
 
+/**
+ * Gate-relative positions, DERIVED from the config. Hardcoding a value next to a threshold is
+ * how a retune silently stops exercising the thing a test is named after — it happened to five
+ * tests and to the whole corpus when the rates were re-tuned.
+ */
+const gateOf = (ruleId: string) => {
+  const rule = cfg.rules.find((r) => r.id === ruleId);
+  if (rule?.gate == null) throw new Error(`test setup: rule "${ruleId}" has no gate`);
+  return rule.gate;
+};
+/** A dt short enough that no gate flips, so a constant-rate expectation is legitimate. */
+function quietSpan(s: State, want: number): number {
+  let dt = want;
+  while (dt > 1 && signature(cfg, advance(loaded, s, dt).stats) !== signature(cfg, s.stats)) {
+    dt = Math.floor(dt / 2);
+  }
+  return dt;
+}
+
 const runVector = (v: { initial: State; events: { atMs: number; kind: string }[]; untilMs: number }) =>
   replay(loaded, v.initial, v.events, v.untilMs);
 
@@ -119,7 +138,11 @@ test('AC1a.2a gate open: movement equals the config rate over dt, carrying the r
     const s: State = { ...base, stats: { ...base.stats, [g.stat]: open } };
     assert.ok(netRates(cfg, s.stats)[rule.stat] !== 0, `${rule.id}: gate did not open`);
 
-    const dt = 1_000_000;
+    // Constant-rate arithmetic is only valid while the rate set is constant, so the span is
+    // shrunk until no gate flips inside it. A fixed span silently became wrong the moment a
+    // fourth health rule was added to the config.
+    const dt = quietSpan(s, 1_000_000);
+    assert.ok(dt >= 1, `${rule.id}: no quiet span exists`);
     const rate = netRates(cfg, s.stats)[rule.stat];
     // Expected from the DECLARED semantics: additive rates, remainder carried, clamp once.
     const n = rate * dt + s.rem[rule.stat];
@@ -133,12 +156,19 @@ test('AC1a.2a gate open: movement equals the config rate over dt, carrying the r
 
 test('AC1a.2b gate closed throughout: the gated stat is value-identical', () => {
   // healthRecover shut, starveDamage shut, filthDamage shut => health must not move at all.
+  // Place every health gate in its closed position, computed from the config: hunger strictly
+  // between the recover ceiling and the starve floor, cleanliness above the filth floor, weight
+  // below the obesity floor.
   const base = initialState(loaded, 0);
-  const s: State = { ...base, stats: { ...base.stats, hunger: 50_000, cleanliness: 90_000 } };
-  for (const rule of cfg.rules.filter((r) => r.stat === 'health')) {
-    assert.ok(!netRates(cfg, s.stats).health || rule.gate === null,
-      'setup assumption broken: a health rule is open');
-  }
+  const s: State = {
+    ...base,
+    stats: {
+      ...base.stats,
+      hunger: Math.floor((gateOf('healthRecover').value + gateOf('starveDamage').value) / 2),
+      cleanliness: gateOf('filthDamage').value + 1000,
+      weight: gateOf('obesityDamage').value - 1000,
+    },
+  };
   assert.equal(netRates(cfg, s.stats).health, 0, 'no health rule should be open here');
   const after = advance(loaded, s, 60_000);
   assert.equal(after.stats.health, s.stats.health);
@@ -261,7 +291,7 @@ test('maxSegments is an exact bound: the last permitted segment runs, one more t
   // therefore exactly two segments.
   const raw = JSON.parse(readFileSync('tuning/default.json', 'utf8'));
   const base = initialState(loaded, 0);
-  const s: State = { ...base, stats: { ...base.stats, hunger: 89_900 } };
+  const s: State = { ...base, stats: { ...base.stats, hunger: gateOf('starveDamage').value - 100 } };
   const two = loadConfig({ ...raw, maxSegments: 2 });
   const one = loadConfig({ ...raw, maxSegments: 1 });
   assert.doesNotThrow(() => advance(two, s, 10 * 60_000), 'two segments must fit in a bound of 2');
@@ -292,13 +322,19 @@ test('AC1a.8/1 unsorted events are stably normalised, not rejected or dropped', 
   assert.deepEqual(replay(loaded, s0, unsorted, 12 * 60_000), replay(loaded, s0, sorted, 12 * 60_000));
 });
 
-test('AC1a.8/1 two events at one timestamp keep input order', () => {
+test('AC1a.8/1 two events at one timestamp are applied in input order', () => {
+  // This convention is only falsifiable if some pair of interactions is order-SENSITIVE. It
+  // becomes so wherever an intermediate value clamps: feed then play lands on the floor and then
+  // rises off it; play then feed lands further above the floor and clamps to it. An earlier
+  // version of this test asserted order did NOT matter, which is precisely what made the
+  // convention untestable — an audit showed a tie-REVERSING comparator passed the whole suite.
   const s0 = initialState(loaded, 0);
-  const a = replay(loaded, s0, [{ atMs: 1000, kind: 'feed' }, { atMs: 1000, kind: 'play' }], 2000);
-  const b = replay(loaded, s0, [{ atMs: 1000, kind: 'play' }, { atMs: 1000, kind: 'feed' }], 2000);
-  // feed and play both move weight; applied in a different order they are still additive, so
-  // the assertion is that the ORDER IS HONOURED, i.e. the pair is processed as given.
-  assert.deepEqual(a, b, 'these two interactions are additive, so order must not matter here');
+  const feedFirst = replay(loaded, s0, [{ atMs: 1000, kind: 'feed' }, { atMs: 1000, kind: 'play' }], 1000);
+  const playFirst = replay(loaded, s0, [{ atMs: 1000, kind: 'play' }, { atMs: 1000, kind: 'feed' }], 1000);
+  assert.notDeepEqual(feedFirst, playFirst, 'this pair must be order-sensitive or the check is vacuous');
+  // And the result must match applying them one at a time, in the order given.
+  assert.deepEqual(feedFirst, apply(loaded, apply(loaded, advance(loaded, s0, 1000), 'feed'), 'play'));
+  assert.deepEqual(playFirst, apply(loaded, apply(loaded, advance(loaded, s0, 1000), 'play'), 'feed'));
 });
 
 test('AC1a.8/2 an event predating the initial state is a ReplayError', () => {
@@ -419,7 +455,12 @@ test('signature tracks gate state, and gate state alone', () => {
   // Saturation deliberately does NOT change it: see the reasoning in core/src/sim/rules.ts.
   // Step-independence across saturation is asserted separately, by AC1a.1's partition test at
   // the reference-supplied bound-reaching times — which is where it belongs.
-  const atMax = { ...base.stats, weight: cfg.stats.weight.max };
+  // Use a stat that carries no gate — otherwise saturating it flips that gate and the check
+  // measures the gate, not the saturation.
+  const ungated = Object.keys(cfg.stats).find(
+    (id) => !cfg.rules.some((r) => r.gate?.stat === id));
+  assert.ok(ungated, 'every stat now carries a gate; pick another way to test this');
+  const atMax = { ...base.stats, [ungated]: cfg.stats[ungated].max };
   assert.equal(signature(cfg, atMax), interior, 'saturation alone must not resegment');
 });
 

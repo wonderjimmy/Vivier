@@ -32,11 +32,13 @@
     "gateOn": [
       "filthDamage",
       "healthRecover",
+      "obesityDamage",
       "starveDamage"
     ],
     "gateOff": [
       "filthDamage",
       "healthRecover",
+      "obesityDamage",
       "starveDamage"
     ],
     "interactions": [
@@ -44,7 +46,7 @@
       "feed",
       "play"
     ],
-    "dualOracleVectors": 15
+    "dualOracleVectors": 16
   },
   "vectors": [
     {
@@ -131,10 +133,10 @@
           "weight": 19999
         },
         "rem": {
-          "hunger": 4200,
-          "happiness": 3597500,
-          "cleanliness": 3598200,
-          "health": 1200,
+          "hunger": 1600,
+          "happiness": 3598800,
+          "cleanliness": 3599000,
+          "health": 700,
           "weight": 3599940
         }
       }
@@ -170,17 +172,17 @@
         "tMs": 60000,
         "ageMs": 60000,
         "stats": {
-          "hunger": 20070,
-          "happiness": 69958,
-          "cleanliness": 89970,
+          "hunger": 20026,
+          "happiness": 69980,
+          "cleanliness": 89983,
           "health": 100000,
           "weight": 19999
         },
         "rem": {
-          "hunger": 0,
-          "happiness": 1200000,
-          "cleanliness": 0,
-          "health": 0,
+          "hunger": 2400000,
+          "happiness": 0,
+          "cleanliness": 1200000,
+          "health": 2400000,
           "weight": 0
         }
       }
@@ -194,7 +196,7 @@
         "tMs": 0,
         "ageMs": 0,
         "stats": {
-          "hunger": 89900,
+          "hunger": 84900,
           "happiness": 70000,
           "cleanliness": 90000,
           "health": 100000,
@@ -211,40 +213,40 @@
       "events": [],
       "untilMs": 600000,
       "crossings": [
-        84858,
-        85715,
-        86572
+        222750,
+        225000,
+        227250
       ],
       "expected": {
         "schemaVersion": 1,
         "tMs": 600000,
         "ageMs": 600000,
         "stats": {
-          "hunger": 90600,
-          "happiness": 69583,
-          "cleanliness": 89700,
-          "health": 99571,
+          "hunger": 85166,
+          "happiness": 69800,
+          "cleanliness": 89833,
+          "health": 99927,
           "weight": 19990
         },
         "rem": {
-          "hunger": 0,
-          "happiness": 1200000,
-          "cleanliness": 0,
-          "health": 1545000,
+          "hunger": 2400000,
+          "happiness": 0,
+          "cleanliness": 1200000,
+          "health": 300000,
           "weight": 0
         }
       }
     },
     {
       "id": "starve-gate-off",
-      "note": "two feeds walk hunger down through both gates: starveDamage on->off, healthRecover off->on",
+      "note": "feeds walk hunger down through both gates: starveDamage on->off, healthRecover off->on",
       "both": true,
       "initial": {
         "schemaVersion": 1,
         "tMs": 0,
         "ageMs": 0,
         "stats": {
-          "hunger": 89900,
+          "hunger": 85100,
           "happiness": 70000,
           "cleanliness": 90000,
           "health": 100000,
@@ -269,41 +271,37 @@
         }
       ],
       "untilMs": 600000,
-      "crossings": [
-        84858,
-        85715,
-        86572
-      ],
+      "crossings": [],
       "expected": {
         "schemaVersion": 1,
         "tMs": 600000,
         "ageMs": 600000,
         "stats": {
-          "hunger": 30600,
-          "happiness": 69583,
-          "cleanliness": 89700,
+          "hunger": 5366,
+          "happiness": 69800,
+          "cleanliness": 89833,
           "health": 100000,
-          "weight": 22390
+          "weight": 22990
         },
         "rem": {
-          "hunger": 0,
-          "happiness": 1200000,
-          "cleanliness": 0,
-          "health": 1545000,
+          "hunger": 2400000,
+          "happiness": 0,
+          "cleanliness": 1200000,
+          "health": 2400000,
           "weight": 0
         }
       }
     },
     {
       "id": "recover-gate-toggle",
-      "note": "healthRecover on -> off as hunger rises past 40000",
+      "note": "healthRecover on -> off as hunger rises past its gate",
       "both": true,
       "initial": {
         "schemaVersion": 1,
         "tMs": 0,
         "ageMs": 0,
         "stats": {
-          "hunger": 39900,
+          "hunger": 64900,
           "happiness": 70000,
           "cleanliness": 90000,
           "health": 50000,
@@ -320,26 +318,26 @@
       "events": [],
       "untilMs": 600000,
       "crossings": [
-        84858,
-        85715,
-        86572
+        222750,
+        225000,
+        227250
       ],
       "expected": {
         "schemaVersion": 1,
         "tMs": 600000,
         "ageMs": 600000,
         "stats": {
-          "hunger": 40600,
-          "happiness": 69583,
-          "cleanliness": 89700,
-          "health": 50028,
+          "hunger": 65166,
+          "happiness": 69800,
+          "cleanliness": 89833,
+          "health": 50044,
           "weight": 19990
         },
         "rem": {
-          "hunger": 0,
-          "happiness": 1200000,
-          "cleanliness": 0,
-          "health": 3086400,
+          "hunger": 2400000,
+          "happiness": 0,
+          "cleanliness": 1200000,
+          "health": 675000,
           "weight": 0
         }
       }
@@ -375,18 +373,18 @@
       ],
       "untilMs": 720000,
       "crossings": [
-        196001,
-        198001,
-        200001
+        352801,
+        356401,
+        360001
       ],
       "expected": {
         "schemaVersion": 1,
         "tMs": 720000,
         "ageMs": 720000,
         "stats": {
-          "hunger": 20840,
-          "happiness": 69500,
-          "cleanliness": 54740,
+          "hunger": 20320,
+          "happiness": 69760,
+          "cleanliness": 59900,
           "health": 60122,
           "weight": 19988
         },
@@ -394,7 +392,74 @@
           "hunger": 0,
           "happiness": 0,
           "cleanliness": 0,
-          "health": 1801500,
+          "health": 3000500,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "obesity-gate-toggle",
+      "note": "weight crosses its gate upward under feeding, then drifts back: obesityDamage off->on->off",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 44900
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [
+        {
+          "atMs": 120000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 240000,
+          "kind": "play"
+        },
+        {
+          "atMs": 300000,
+          "kind": "play"
+        },
+        {
+          "atMs": 360000,
+          "kind": "play"
+        },
+        {
+          "atMs": 420000,
+          "kind": "play"
+        }
+      ],
+      "untilMs": 720000,
+      "crossings": [],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 720000,
+        "ageMs": 720000,
+        "stats": {
+          "hunger": 12267,
+          "happiness": 99900,
+          "cleanliness": 89800,
+          "health": 100000,
+          "weight": 44388
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
           "weight": 0
         }
       }
@@ -408,7 +473,7 @@
         "tMs": 0,
         "ageMs": 0,
         "stats": {
-          "hunger": 99800,
+          "hunger": 99900,
           "happiness": 70000,
           "cleanliness": 90000,
           "health": 100000,
@@ -425,7 +490,7 @@
       "events": [],
       "untilMs": 600000,
       "crossings": [
-        171429
+        225000
       ],
       "expected": {
         "schemaVersion": 1,
@@ -433,16 +498,16 @@
         "ageMs": 600000,
         "stats": {
           "hunger": 100000,
-          "happiness": 69583,
-          "cleanliness": 89700,
-          "health": 99500,
+          "happiness": 69800,
+          "cleanliness": 89833,
+          "health": 99883,
           "weight": 19990
         },
         "rem": {
-          "hunger": 0,
-          "happiness": 1200000,
-          "cleanliness": 0,
-          "health": 0,
+          "hunger": 2400000,
+          "happiness": 0,
+          "cleanliness": 1200000,
+          "health": 1200000,
           "weight": 0
         }
       }
@@ -457,7 +522,7 @@
         "ageMs": 0,
         "stats": {
           "hunger": 20000,
-          "happiness": 200,
+          "happiness": 100,
           "cleanliness": 90000,
           "health": 100000,
           "weight": 20000
@@ -473,24 +538,24 @@
       "events": [],
       "untilMs": 600000,
       "crossings": [
-        286561
+        297001
       ],
       "expected": {
         "schemaVersion": 1,
         "tMs": 600000,
         "ageMs": 600000,
         "stats": {
-          "hunger": 20700,
+          "hunger": 20266,
           "happiness": 0,
-          "cleanliness": 89700,
+          "cleanliness": 89833,
           "health": 100000,
           "weight": 19990
         },
         "rem": {
-          "hunger": 0,
-          "happiness": 1200000,
-          "cleanliness": 0,
-          "health": 0,
+          "hunger": 2400000,
+          "happiness": 0,
+          "cleanliness": 1200000,
+          "health": 2400000,
           "weight": 0
         }
       }
@@ -539,11 +604,11 @@
         "tMs": 720000,
         "ageMs": 720000,
         "stats": {
-          "hunger": 700,
-          "happiness": 87500,
-          "cleanliness": 99910,
+          "hunger": 3267,
+          "happiness": 94760,
+          "cleanliness": 99950,
           "health": 100000,
-          "weight": 20788
+          "weight": 20988
         },
         "rem": {
           "hunger": 0,
@@ -563,7 +628,7 @@
         "tMs": 0,
         "ageMs": 0,
         "stats": {
-          "hunger": 89900,
+          "hunger": 84900,
           "happiness": 70000,
           "cleanliness": 90000,
           "health": 100000,
@@ -579,32 +644,32 @@
       },
       "events": [
         {
-          "atMs": 84858,
+          "atMs": 222750,
           "kind": "feed"
         }
       ],
       "untilMs": 600000,
       "crossings": [
-        84858,
-        85715,
-        86572
+        222750,
+        225000,
+        227250
       ],
       "expected": {
         "schemaVersion": 1,
         "tMs": 600000,
         "ageMs": 600000,
         "stats": {
-          "hunger": 60600,
-          "happiness": 69583,
-          "cleanliness": 89700,
+          "hunger": 45166,
+          "happiness": 69800,
+          "cleanliness": 89833,
           "health": 100000,
-          "weight": 21190
+          "weight": 21490
         },
         "rem": {
-          "hunger": 0,
-          "happiness": 1200000,
-          "cleanliness": 0,
-          "health": 0,
+          "hunger": 2400000,
+          "happiness": 0,
+          "cleanliness": 1200000,
+          "health": 1275000,
           "weight": 0
         }
       }
@@ -649,17 +714,17 @@
         "tMs": 600000,
         "ageMs": 600000,
         "stats": {
-          "hunger": 700,
-          "happiness": 87583,
-          "cleanliness": 89700,
+          "hunger": 3266,
+          "happiness": 94800,
+          "cleanliness": 89833,
           "health": 100000,
-          "weight": 20790
+          "weight": 20990
         },
         "rem": {
-          "hunger": 0,
-          "happiness": 1200000,
-          "cleanliness": 0,
-          "health": 0,
+          "hunger": 2400000,
+          "happiness": 0,
+          "cleanliness": 1200000,
+          "health": 2400000,
           "weight": 0
         }
       }
@@ -704,11 +769,11 @@
         "tMs": 360000,
         "ageMs": 360000,
         "stats": {
-          "hunger": 210,
-          "happiness": 87750,
-          "cleanliness": 89820,
+          "hunger": 3080,
+          "happiness": 94880,
+          "cleanliness": 89900,
           "health": 100000,
-          "weight": 20794
+          "weight": 20994
         },
         "rem": {
           "hunger": 0,
@@ -775,17 +840,17 @@
         "tMs": 480000,
         "ageMs": 480000,
         "stats": {
-          "hunger": 140,
-          "happiness": 69666,
-          "cleanliness": 89760,
+          "hunger": 53,
+          "happiness": 69840,
+          "cleanliness": 89866,
           "health": 100000,
-          "weight": 27192
+          "weight": 28992
         },
         "rem": {
-          "hunger": 0,
-          "happiness": 2400000,
-          "cleanliness": 0,
-          "health": 0,
+          "hunger": 1200000,
+          "happiness": 0,
+          "cleanliness": 2400000,
+          "health": 1200000,
           "weight": 0
         }
       }
@@ -821,9 +886,9 @@
         "tMs": 3600000,
         "ageMs": 3600000,
         "stats": {
-          "hunger": 24200,
-          "happiness": 67500,
-          "cleanliness": 88200,
+          "hunger": 21600,
+          "happiness": 68800,
+          "cleanliness": 89000,
           "health": 100000,
           "weight": 19940
         },
@@ -861,31 +926,23 @@
       },
       "events": [],
       "untilMs": 86400000,
-      "crossings": [
-        17142000,
-        17142858,
-        17143715,
-        59999143,
-        60000000,
-        60000858,
-        68571429
-      ],
+      "crossings": [],
       "expected": {
         "schemaVersion": 1,
         "tMs": 86400000,
         "ageMs": 86400000,
         "stats": {
-          "hunger": 100000,
-          "happiness": 10000,
-          "cleanliness": 46800,
-          "health": 78000,
+          "hunger": 58400,
+          "happiness": 41200,
+          "cleanliness": 66000,
+          "health": 100000,
           "weight": 18560
         },
         "rem": {
           "hunger": 0,
           "happiness": 0,
           "cleanliness": 0,
-          "health": 2058000,
+          "health": 0,
           "weight": 0
         }
       }
@@ -988,25 +1045,17 @@
         }
       ],
       "untilMs": 86400000,
-      "crossings": [
-        17142000,
-        17142858,
-        17143715,
-        59999143,
-        60000000,
-        60000858,
-        68571429
-      ],
+      "crossings": [],
       "expected": {
         "schemaVersion": 1,
         "tMs": 86400000,
         "ageMs": 86400000,
         "stats": {
-          "hunger": 8400,
-          "happiness": 95042,
-          "cleanliness": 96460,
+          "hunger": 6200,
+          "happiness": 97620,
+          "cleanliness": 98034,
           "health": 100000,
-          "weight": 23360
+          "weight": 24560
         },
         "rem": {
           "hunger": 0,
@@ -1043,18 +1092,18 @@
       "events": [],
       "untilMs": 2592000000,
       "crossings": [
-        17142000,
-        17142858,
-        17143715,
-        59999143,
-        60000000,
-        60000858,
-        68571429,
-        100798561,
-        149996001,
-        149998001,
-        150000001,
-        179998001,
+        101247750,
+        101250000,
+        101252250,
+        146247750,
+        146250000,
+        146252250,
+        180000000,
+        209997001,
+        269992801,
+        269996401,
+        270000001,
+        323996401,
         899940001
       ],
       "expected": {
@@ -1072,7 +1121,7 @@
           "hunger": 0,
           "happiness": 0,
           "cleanliness": 0,
-          "health": 2659500,
+          "health": 3375500,
           "weight": 0
         }
       }
@@ -1344,18 +1393,18 @@
       ],
       "untilMs": 2592000000,
       "crossings": [
-        17142000,
-        17142858,
-        17143715,
-        59999143,
-        60000000,
-        60000858,
-        68571429,
-        100798561,
-        149996001,
-        149998001,
-        150000001,
-        179998001,
+        101247750,
+        101250000,
+        101252250,
+        146247750,
+        146250000,
+        146252250,
+        180000000,
+        209997001,
+        269992801,
+        269996401,
+        270000001,
+        323996401,
         899940001
       ],
       "expected": {
@@ -1365,7 +1414,7 @@
         "stats": {
           "hunger": 100000,
           "happiness": 0,
-          "cleanliness": 18400,
+          "cleanliness": 88000,
           "health": 0,
           "weight": 5000
         },
@@ -1373,7 +1422,7 @@
           "hunger": 0,
           "happiness": 0,
           "cleanliness": 0,
-          "health": 1793400,
+          "health": 1125000,
           "weight": 0
         }
       }

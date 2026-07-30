@@ -46,7 +46,7 @@ const every = (perDay, kinds) => {
 };
 const PATTERNS = [
   { id: 'neglect', label: 'Never touched', events: [] },
-  { id: 'light', label: '2 interactions / day', events: every(2, ['feed', 'play']) },
+  { id: 'light', label: '2 / day (feed, play)', events: every(2, ['feed', 'play']) },
   { id: 'daily', label: '4 / day (feed, play, feed, clean)', events: every(4, ['feed', 'play', 'feed', 'clean']) },
   { id: 'devoted', label: '8 / day', events: every(8, ['feed', 'play', 'feed', 'clean', 'feed', 'play', 'feed', 'clean']) },
 ];

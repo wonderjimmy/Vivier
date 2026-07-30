@@ -3,27 +3,128 @@
   "denominator": 3600000,
   "maxSegments": 4096,
   "stats": {
-    "hunger":      { "min": 0,    "max": 100000, "initial": 20000 },
-    "happiness":   { "min": 0,    "max": 100000, "initial": 70000 },
-    "cleanliness": { "min": 0,    "max": 100000, "initial": 90000 },
-    "health":      { "min": 0,    "max": 100000, "initial": 100000 },
-    "weight":      { "min": 5000, "max": 60000,  "initial": 20000 }
+    "hunger": {
+      "min": 0,
+      "max": 100000,
+      "initial": 20000
+    },
+    "happiness": {
+      "min": 0,
+      "max": 100000,
+      "initial": 70000
+    },
+    "cleanliness": {
+      "min": 0,
+      "max": 100000,
+      "initial": 90000
+    },
+    "health": {
+      "min": 0,
+      "max": 100000,
+      "initial": 100000
+    },
+    "weight": {
+      "min": 5000,
+      "max": 60000,
+      "initial": 20000
+    }
   },
   "rules": [
-    { "id": "hungerRise",    "stat": "hunger",      "ratePerHour":  4200, "gate": null },
-    { "id": "moodFall",      "stat": "happiness",   "ratePerHour": -2500, "gate": null },
-    { "id": "grimeBuild",    "stat": "cleanliness", "ratePerHour": -1800, "gate": null },
-    { "id": "weightDrift",   "stat": "weight",      "ratePerHour":   -60, "gate": null },
-    { "id": "starveDamage",  "stat": "health",      "ratePerHour": -3000,
-      "gate": { "stat": "hunger",      "op": "gte", "value": 90000 } },
-    { "id": "filthDamage",   "stat": "health",      "ratePerHour": -1500,
-      "gate": { "stat": "cleanliness", "op": "lte", "value": 15000 } },
-    { "id": "healthRecover", "stat": "health",      "ratePerHour":  1200,
-      "gate": { "stat": "hunger",      "op": "lte", "value": 40000 } }
+    {
+      "id": "hungerRise",
+      "stat": "hunger",
+      "ratePerHour": 1600,
+      "gate": null
+    },
+    {
+      "id": "moodFall",
+      "stat": "happiness",
+      "ratePerHour": -1200,
+      "gate": null
+    },
+    {
+      "id": "grimeBuild",
+      "stat": "cleanliness",
+      "ratePerHour": -1000,
+      "gate": null
+    },
+    {
+      "id": "weightDrift",
+      "stat": "weight",
+      "ratePerHour": -60,
+      "gate": null
+    },
+    {
+      "id": "starveDamage",
+      "stat": "health",
+      "ratePerHour": -700,
+      "gate": {
+        "stat": "hunger",
+        "op": "gte",
+        "value": 85000
+      }
+    },
+    {
+      "id": "filthDamage",
+      "stat": "health",
+      "ratePerHour": -500,
+      "gate": {
+        "stat": "cleanliness",
+        "op": "lte",
+        "value": 15000
+      }
+    },
+    {
+      "id": "obesityDamage",
+      "stat": "health",
+      "ratePerHour": -900,
+      "gate": {
+        "stat": "weight",
+        "op": "gte",
+        "value": 45000
+      }
+    },
+    {
+      "id": "healthRecover",
+      "stat": "health",
+      "ratePerHour": 700,
+      "gate": {
+        "stat": "hunger",
+        "op": "lte",
+        "value": 65000
+      }
+    }
   ],
   "interactions": {
-    "feed":  [ { "stat": "hunger",      "delta": -30000 }, { "stat": "weight", "delta": 1200 } ],
-    "play":  [ { "stat": "happiness",   "delta":  18000 }, { "stat": "weight", "delta": -400 } ],
-    "clean": [ { "stat": "cleanliness", "delta":  40000 } ]
+    "feed": [
+      {
+        "stat": "hunger",
+        "delta": -40000
+      },
+      {
+        "stat": "weight",
+        "delta": 1500
+      }
+    ],
+    "play": [
+      {
+        "stat": "happiness",
+        "delta": 25000
+      },
+      {
+        "stat": "weight",
+        "delta": -500
+      },
+      {
+        "stat": "hunger",
+        "delta": 3000
+      }
+    ],
+    "clean": [
+      {
+        "stat": "cleanliness",
+        "delta": 45000
+      }
+    ]
   }
 }

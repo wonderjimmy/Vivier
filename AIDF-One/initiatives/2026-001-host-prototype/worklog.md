@@ -683,3 +683,69 @@ threshold everything collapses inside 48 h, at or above it the pet is pinned at 
 - State now: P1a still NOT DONE (audit findings open). The spike adds no phase progress; it makes
   the tuning problem judgeable.
 - Next: human's call on re-splitting P1a and on retuning.
+
+## [2026-07-31 02:51 HKT] ROADMAP amendment 3 (P1a split) + tuning retune
+
+- branch: `initiative/2026-001-host-prototype` · phase: P1a re-split; tuning retuned
+- Verified in file: AC1a.15–1a.20 present in `scope.md` (checked by grep, not assumed — the last
+  time I claimed a scope amendment without a read-back, it had not landed).
+
+### Split
+- **P1a-1 Core arithmetic** — AC1a.1–1a.8, 1a.12, plus three new criteria written against the
+  audit's high-severity defects: AC1a.15 (no per-call budget may change the answer), AC1a.16
+  (derived bounds proved over generated configs, covering the binary-search midpoint), AC1a.17
+  (crossing times enumerated per segment and across events).
+- **P1a-2 Verification toolchain** — AC1a.9–1a.11, 1a.13, 1a.14 rewritten, plus AC1a.18 (every gate
+  tool ships a self-test it must fail on), AC1a.19 (no hardcoded tuned values), AC1a.20 (mutation
+  gate runs against a copy).
+- Layer-1 matrix `stage` row reassigned to P3, where it belongs.
+
+### Retune — the curve now has a shape
+Four passes with the viewer. Final:
+
+| pattern | interactions / 30d | outcome |
+|---|---|---|
+| never touched | 0 | dead, day 5 h19 |
+| 2 / day (feed, play) | 60 | **survives, health 92.6%** |
+| 4 / day | 120 | survives, health 69.4% |
+| 8 / day | 240 | **dead, day 27 h22 — obesity** |
+
+There is now a genuine optimum. Neglect kills in under six days; light daily attention thrives;
+**over-feeding kills too**, slower and more insidiously, via a new `obesityDamage` rule gated on
+weight. That is `scope.md` AC3.7's mechanic — attention itself having a cost — working for the
+first time, and it is the mechanic the deferred shared version depends on.
+Also added: `play` now raises hunger slightly, so the interactions trade against each other rather
+than each being independently free.
+
+### Rejected / Learnings
+- **The corpus generator and five tests hardcoded values sitting next to gate thresholds.** The
+  retune moved a gate from 90000 to 85000 and the generator threw. That throw was the only reason
+  it was noticed — silent coverage loss was the alternative. All start points are now derived from
+  the config, and AC1a.19 makes that a criterion. This is DIAGNOSE root 2 in miniature: a value
+  verified against one config and assumed general.
+- **One break was good news.** `AC1a.8/1` asserted that two same-timestamp interactions produce the
+  same result either way — which is exactly what made the ordering convention untestable (the audit
+  killed it with a tie-REVERSING comparator that passed the whole suite). Under the new config feed
+  and play are genuinely order-sensitive, because feed drives hunger into its floor and the clamp
+  makes the order observable. The test now asserts order is HONOURED, and the convention is
+  falsifiable for the first time.
+- **Test setup assumptions rot silently.** `AC1a.2b` positioned a state where "no health rule is
+  open"; adding a fourth health rule quietly opened one and the test kept passing until the retune.
+  Now computed from the gates themselves.
+
+### Evidence (full gate, retuned config)
+- `check-integers` OK · `check-tuning-data` OK · `check-imports` OK
+- `node --test` → **31 pass, 0 fail**
+- mutation gate → **81/89 killed, 8 declared equivalent, 0 undeclared**
+- corpus regenerated: **20 vectors, 16 cross-checked under both oracles, all agree**; coverage now
+  includes `obesityDamage` on→off both ways.
+
+- **Not claimed:** the three high-severity audit defects (AC1a.15–1a.17) are **still open**. The
+  gate being green does not close them — they are green precisely because no test generates a
+  config, which is the defect. P1a-1 is not done.
+- **Open design note for P3:** `scope.md` §3 step 4 says a 48 h gap reaches `sick`. On the retuned
+  curve, 48 h leaves health at ~95% — starvation damage only begins at ~40 h. `sick` almost
+  certainly needs to key on a gate being open rather than on a health percentage. P3 owns the
+  definition; flagging it so §3's acceptance is revisited rather than quietly missed.
+- State now: P1a split into P1a-1 / P1a-2, tuning retuned and green, three defects open.
+- Next: P1a-1 — close AC1a.15, 1a.16, 1a.17.
