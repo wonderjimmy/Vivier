@@ -307,3 +307,79 @@ clauses is not mechanically verifiable and must be tagged, not faked.
   `core/`, `host/` and `tools/` do not exist yet.
 - Next: **STOP — human judges AC0.3.** YES → P1 (deterministic core & replay harness). NO → back to
   THINK, not to P1.   Open questions: AC0.3.
+
+## [2026-07-30 23:09 HKT] P0 CLOSED — AC0.3 = YES
+
+- branch: `initiative/2026-001-host-prototype` · phase: P0 closed, P1 opening
+- Human judged AC0.3 **YES** on the glance test. The go/no-go passes: a 64×64 cat reads as alive
+  under an additive overlay budget, and five conditions are separable at device-equivalent scale.
+- Consequence: `project-intent.md` §8 Q3's ship-or-not half is answered affirmatively. The remaining
+  art question (the full vocabulary across four stages) stays at P6 where it belongs.
+- P0's cells remain spike-only under AC0.4. P6 re-authors.
+
+## [2026-07-30 23:09 HKT] P1 — CRITIQUE panel (3 facets, fresh contexts). NOT YET BUILT.
+
+- branch: `initiative/2026-001-host-prototype` · phase: 2 of 7 — P1, at CRITIQUE
+- verifier panel: 3 CRITIQUE reports below. No code written. RUN is **blocked** on the judgment
+  finding (craft.md: judgment findings escalate to the human *before* RUN).
+
+### Facet 1 — correctness (sonnet)
+- AC1.1 **OK** and confirmed achievable; forces an integer accumulator with exact remainder carry
+  plus an internal discrete-event splitter that cuts Δ at analytically-computed crossing times.
+  No mathematical contradiction: all rates and thresholds are integers, so crossing times solve exactly.
+- **AC1.2 DEFECT (oracle, A1/A3)** — quantifies over "the golden-vector corpus", but the corpus is
+  undefined everywhere: no size, no generation method, no seed, no committed location. As written the
+  check cannot be built, and whoever writes the corpus silently chooses what determinism means.
+- **AC1.7 DEFECT (oracle, A1/A3)** — "zero numeric simulation constants" has no operational
+  definition separating a decay rate from a loop bound or a unit conversion. Not mechanical until an
+  allowlist is named.
+- AC1.3, AC1.4, AC1.5, AC1.6 OK. Unsatisfiable-as-written: none.
+
+### Facet 2 — adversarial (opus) — six ways to pass every AC and still be wrong
+1. **The corpus certifies itself.** Four ACs quantify over the corpus; the natural implementation
+   generates expected end states by running `replay` and dumping the output. Every corpus check
+   becomes a tautology, a single Δ=0 vector satisfies four ACs exhaustively, and a later phase that
+   changes a decay rate just regenerates the corpus. **ADR-001 rests the entire port-cost bound on
+   this corpus being the semantics SSOT** — self-generation reduces it to a snapshot of today's code.
+2. **An invalid tuning config runs silently.** A zero or negative rate produces a flat trajectory
+   that is perfectly step-size-independent, deterministic, integral and in-range. Thirty days of
+   tuning yield a pet that never decays, and nothing says so — constitution law 4 demands
+   validate-on-load for saves; the config, the file the owner edits daily, has no equivalent.
+3. **The harness prints numbers the core never produced.** AC1.6 constrains speed, exit code and
+   stdout stability but never binds stdout to core state. An approximating harness is exactly as
+   reproducible as a correct one — this is the phase's own listed failure mode, unclosed by any AC.
+4. **Hidden non-stat state.** AC1.3/AC1.4 quantify only over *declared stats*. The remainder
+   accumulator AC1.1 forces, or an unclamped shadow value, escapes both — and P2's AC2.1 then
+   assumes a round-trip P1 never proved.
+5. **AC1.1 is satisfiable by deleting the conditional.** It is a self-consistency property, not a
+   correctness one: making every rate unconditional and linear passes it trivially. Worse, 1000
+   *random* partition points essentially never land within milliseconds of a crossing, so an
+   off-by-one in the split is self-consistent and therefore invisible.
+6. **Overflow past 2^53.** AC1.4 actively mandates Δ = MAX_SAFE_INTEGER; `rate × Δ` blows past 2^53
+   immediately, and every float64 above 2^53 is still an integer — so `Number.isInteger` passes on
+   garbage and the clamped result stays in range.
+- Twelve unlisted failure modes recorded, incl. undefined event-list ordering (unsorted, equal
+  timestamps, events predating `initial`), an inert `seed`, non-canonical serialisation, and
+  AC1.7's mutation check being satisfiable by a single key while dead keys survive.
+- kind tags: all six **oracle**.
+
+### Facet 3 — intent-fidelity / back-translation gate (opus)
+- Reconstruction from the AC set alone: *"a substrate/regression-fixture phase — make pet state a
+  trustworthy pure function and prove it in CI."*
+- Stated INTENT: *"The owner must be able to judge a month of the pet's life without living a month,
+  and trust that what the harness shows is exactly what the pet will really do."*
+- **Verdict: DIVERGED (kind: judgment).** Clause two is over-served — six of seven ACs are
+  determinism/fidelity. Clause one is *not encoded at all*. Nothing requires the harness to be an
+  **instrument**: AC1.6 pins one baked-in event list, and no AC requires it to accept a different
+  care pattern or a different tuning config without editing source. The AC set is fully satisfied by
+  a hardcoded fixture printing a CSV — green, with the owner no closer to judging an arbitrary month.
+- Fix target: **the ACs**, not the INTENT. The INTENT is the better statement of the goal.
+
+- Rejected / Learnings: my ROADMAP wrote P1's ACs almost entirely against *mechanism* fidelity and
+  let the phase's human-facing half ride on one clause of one AC. The back-translation gate is the
+  only check that could have caught that, and it did — before any code existed.
+- fresh-context AUDIT: n/a (nothing built) · adversarial gate: **6 holes found** ·
+  back-translation: **DIVERGED** · REQUIRES-JUDGMENT: decay-curve shape (unchanged)
+- State now: P1 specified but **not built**. RUN blocked pending the human's call below.
+- Next: human decides the two escalations, then rulers are re-trued and the panel re-run to two
+  consecutive clean rounds before RUN.
