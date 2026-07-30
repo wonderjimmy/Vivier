@@ -1,0 +1,1382 @@
+{
+  "schemaVersion": 1,
+  "generatedFrom": "reference/src/engine.ts",
+  "coverage": {
+    "rose": [
+      "cleanliness",
+      "happiness",
+      "health",
+      "hunger",
+      "weight"
+    ],
+    "fell": [
+      "cleanliness",
+      "happiness",
+      "health",
+      "hunger",
+      "weight"
+    ],
+    "arrivedAtMax": [
+      "cleanliness",
+      "happiness",
+      "health",
+      "hunger"
+    ],
+    "arrivedAtMin": [
+      "cleanliness",
+      "happiness",
+      "health",
+      "hunger",
+      "weight"
+    ],
+    "gateOn": [
+      "filthDamage",
+      "healthRecover",
+      "starveDamage"
+    ],
+    "gateOff": [
+      "filthDamage",
+      "healthRecover",
+      "starveDamage"
+    ],
+    "interactions": [
+      "clean",
+      "feed",
+      "play"
+    ],
+    "dualOracleVectors": 15
+  },
+  "vectors": [
+    {
+      "id": "zero",
+      "note": "delta = 0",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [],
+      "untilMs": 0,
+      "crossings": [],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "one-ms",
+      "note": "delta = 1 ms",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [],
+      "untilMs": 1,
+      "crossings": [],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 1,
+        "ageMs": 1,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 69999,
+          "cleanliness": 89999,
+          "health": 100000,
+          "weight": 19999
+        },
+        "rem": {
+          "hunger": 4200,
+          "happiness": 3597500,
+          "cleanliness": 3598200,
+          "health": 1200,
+          "weight": 3599940
+        }
+      }
+    },
+    {
+      "id": "quiet-minute",
+      "note": "one minute, no events",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [],
+      "untilMs": 60000,
+      "crossings": [],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 60000,
+        "ageMs": 60000,
+        "stats": {
+          "hunger": 20070,
+          "happiness": 69958,
+          "cleanliness": 89970,
+          "health": 100000,
+          "weight": 19999
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 1200000,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "starve-gate-on",
+      "note": "hunger crosses its gate upward: starveDamage off -> on",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 89900,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [],
+      "untilMs": 600000,
+      "crossings": [
+        84858,
+        85715,
+        86572
+      ],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 600000,
+        "ageMs": 600000,
+        "stats": {
+          "hunger": 90600,
+          "happiness": 69583,
+          "cleanliness": 89700,
+          "health": 99571,
+          "weight": 19990
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 1200000,
+          "cleanliness": 0,
+          "health": 1545000,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "starve-gate-off",
+      "note": "two feeds walk hunger down through both gates: starveDamage on->off, healthRecover off->on",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 89900,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [
+        {
+          "atMs": 180000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 360000,
+          "kind": "feed"
+        }
+      ],
+      "untilMs": 600000,
+      "crossings": [
+        84858,
+        85715,
+        86572
+      ],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 600000,
+        "ageMs": 600000,
+        "stats": {
+          "hunger": 30600,
+          "happiness": 69583,
+          "cleanliness": 89700,
+          "health": 100000,
+          "weight": 22390
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 1200000,
+          "cleanliness": 0,
+          "health": 1545000,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "recover-gate-toggle",
+      "note": "healthRecover on -> off as hunger rises past 40000",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 39900,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 50000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [],
+      "untilMs": 600000,
+      "crossings": [
+        84858,
+        85715,
+        86572
+      ],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 600000,
+        "ageMs": 600000,
+        "stats": {
+          "hunger": 40600,
+          "happiness": 69583,
+          "cleanliness": 89700,
+          "health": 50028,
+          "weight": 19990
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 1200000,
+          "cleanliness": 0,
+          "health": 3086400,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "filth-gate-toggle",
+      "note": "filthDamage off -> on -> off across a clean()",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 15100,
+          "health": 60000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [
+        {
+          "atMs": 480000,
+          "kind": "clean"
+        }
+      ],
+      "untilMs": 720000,
+      "crossings": [
+        196001,
+        198001,
+        200001
+      ],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 720000,
+        "ageMs": 720000,
+        "stats": {
+          "hunger": 20840,
+          "happiness": 69500,
+          "cleanliness": 54740,
+          "health": 60122,
+          "weight": 19988
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 1801500,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "saturate-max",
+      "note": "hunger arrives at its max from an interior value",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 99800,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [],
+      "untilMs": 600000,
+      "crossings": [
+        171429
+      ],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 600000,
+        "ageMs": 600000,
+        "stats": {
+          "hunger": 100000,
+          "happiness": 69583,
+          "cleanliness": 89700,
+          "health": 99500,
+          "weight": 19990
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 1200000,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "saturate-min",
+      "note": "happiness arrives at its min from an interior value",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 200,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [],
+      "untilMs": 600000,
+      "crossings": [
+        286561
+      ],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 600000,
+        "ageMs": 600000,
+        "stats": {
+          "hunger": 20700,
+          "happiness": 0,
+          "cleanliness": 89700,
+          "health": 100000,
+          "weight": 19990
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 1200000,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "unsorted-events",
+      "note": "event list supplied out of order (AC1a.8 convention 1)",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [
+        {
+          "atMs": 540000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 120000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 300000,
+          "kind": "play"
+        }
+      ],
+      "untilMs": 720000,
+      "crossings": [],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 720000,
+        "ageMs": 720000,
+        "stats": {
+          "hunger": 700,
+          "happiness": 87500,
+          "cleanliness": 99910,
+          "health": 100000,
+          "weight": 20788
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "event-at-crossing",
+      "note": "an event lands exactly on an internal crossing time",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 89900,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [
+        {
+          "atMs": 84858,
+          "kind": "feed"
+        }
+      ],
+      "untilMs": 600000,
+      "crossings": [
+        84858,
+        85715,
+        86572
+      ],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 600000,
+        "ageMs": 600000,
+        "stats": {
+          "hunger": 60600,
+          "happiness": 69583,
+          "cleanliness": 89700,
+          "health": 100000,
+          "weight": 21190
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 1200000,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "event-at-endpoints",
+      "note": "events at exactly t0 and exactly untilMs (conventions 3, 4)",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [
+        {
+          "atMs": 0,
+          "kind": "feed"
+        },
+        {
+          "atMs": 600000,
+          "kind": "play"
+        }
+      ],
+      "untilMs": 600000,
+      "crossings": [],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 600000,
+        "ageMs": 600000,
+        "stats": {
+          "hunger": 700,
+          "happiness": 87583,
+          "cleanliness": 89700,
+          "health": 100000,
+          "weight": 20790
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 1200000,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "same-timestamp",
+      "note": "two events at an identical timestamp keep input order",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [
+        {
+          "atMs": 180000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 180000,
+          "kind": "play"
+        }
+      ],
+      "untilMs": 360000,
+      "crossings": [],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 360000,
+        "ageMs": 360000,
+        "stats": {
+          "hunger": 210,
+          "happiness": 87750,
+          "cleanliness": 89820,
+          "health": 100000,
+          "weight": 20794
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "rising-weight",
+      "note": "weight strictly increases under repeated feeding",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [
+        {
+          "atMs": 60000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 120000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 180000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 240000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 300000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 360000,
+          "kind": "feed"
+        }
+      ],
+      "untilMs": 480000,
+      "crossings": [],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 480000,
+        "ageMs": 480000,
+        "stats": {
+          "hunger": 140,
+          "happiness": 69666,
+          "cleanliness": 89760,
+          "health": 100000,
+          "weight": 27192
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 2400000,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "one-hour-quiet",
+      "note": "one hour, no events",
+      "both": true,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [],
+      "untilMs": 3600000,
+      "crossings": [],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 3600000,
+        "ageMs": 3600000,
+        "stats": {
+          "hunger": 24200,
+          "happiness": 67500,
+          "cleanliness": 88200,
+          "health": 100000,
+          "weight": 19940
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "day-neglect",
+      "note": "a full day ignored",
+      "both": false,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [],
+      "untilMs": 86400000,
+      "crossings": [
+        17142000,
+        17142858,
+        17143715,
+        59999143,
+        60000000,
+        60000858,
+        68571429
+      ],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 86400000,
+        "ageMs": 86400000,
+        "stats": {
+          "hunger": 100000,
+          "happiness": 10000,
+          "cleanliness": 46800,
+          "health": 78000,
+          "weight": 18560
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 2058000,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "day-attentive",
+      "note": "a day with regular care",
+      "both": false,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [
+        {
+          "atMs": 7200000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 7260000,
+          "kind": "play"
+        },
+        {
+          "atMs": 7320000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 21600000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 21660000,
+          "kind": "play"
+        },
+        {
+          "atMs": 21720000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 36000000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 36060000,
+          "kind": "play"
+        },
+        {
+          "atMs": 36120000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 50400000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 50460000,
+          "kind": "play"
+        },
+        {
+          "atMs": 50520000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 64800000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 64860000,
+          "kind": "play"
+        },
+        {
+          "atMs": 64920000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 79200000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 79260000,
+          "kind": "play"
+        },
+        {
+          "atMs": 79320000,
+          "kind": "clean"
+        }
+      ],
+      "untilMs": 86400000,
+      "crossings": [
+        17142000,
+        17142858,
+        17143715,
+        59999143,
+        60000000,
+        60000858,
+        68571429
+      ],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 86400000,
+        "ageMs": 86400000,
+        "stats": {
+          "hunger": 8400,
+          "happiness": 95042,
+          "cleanliness": 96460,
+          "health": 100000,
+          "weight": 23360
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "thirty-day-neglect",
+      "note": "30 days ignored",
+      "both": false,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [],
+      "untilMs": 2592000000,
+      "crossings": [
+        17142000,
+        17142858,
+        17143715,
+        59999143,
+        60000000,
+        60000858,
+        68571429,
+        100798561,
+        149996001,
+        149998001,
+        150000001,
+        179998001,
+        899940001
+      ],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 2592000000,
+        "ageMs": 2592000000,
+        "stats": {
+          "hunger": 100000,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 5000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 2659500,
+          "weight": 0
+        }
+      }
+    },
+    {
+      "id": "thirty-day-attentive",
+      "note": "30 days of twice-daily care",
+      "both": false,
+      "initial": {
+        "schemaVersion": 1,
+        "tMs": 0,
+        "ageMs": 0,
+        "stats": {
+          "hunger": 20000,
+          "happiness": 70000,
+          "cleanliness": 90000,
+          "health": 100000,
+          "weight": 20000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 0,
+          "weight": 0
+        }
+      },
+      "events": [
+        {
+          "atMs": 0,
+          "kind": "feed"
+        },
+        {
+          "atMs": 43200000,
+          "kind": "play"
+        },
+        {
+          "atMs": 86400000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 129600000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 172800000,
+          "kind": "play"
+        },
+        {
+          "atMs": 216000000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 259200000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 302400000,
+          "kind": "play"
+        },
+        {
+          "atMs": 345600000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 388800000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 432000000,
+          "kind": "play"
+        },
+        {
+          "atMs": 475200000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 518400000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 561600000,
+          "kind": "play"
+        },
+        {
+          "atMs": 604800000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 648000000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 691200000,
+          "kind": "play"
+        },
+        {
+          "atMs": 734400000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 777600000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 820800000,
+          "kind": "play"
+        },
+        {
+          "atMs": 864000000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 907200000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 950400000,
+          "kind": "play"
+        },
+        {
+          "atMs": 993600000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 1036800000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 1080000000,
+          "kind": "play"
+        },
+        {
+          "atMs": 1123200000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 1166400000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 1209600000,
+          "kind": "play"
+        },
+        {
+          "atMs": 1252800000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 1296000000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 1339200000,
+          "kind": "play"
+        },
+        {
+          "atMs": 1382400000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 1425600000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 1468800000,
+          "kind": "play"
+        },
+        {
+          "atMs": 1512000000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 1555200000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 1598400000,
+          "kind": "play"
+        },
+        {
+          "atMs": 1641600000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 1684800000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 1728000000,
+          "kind": "play"
+        },
+        {
+          "atMs": 1771200000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 1814400000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 1857600000,
+          "kind": "play"
+        },
+        {
+          "atMs": 1900800000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 1944000000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 1987200000,
+          "kind": "play"
+        },
+        {
+          "atMs": 2030400000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 2073600000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 2116800000,
+          "kind": "play"
+        },
+        {
+          "atMs": 2160000000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 2203200000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 2246400000,
+          "kind": "play"
+        },
+        {
+          "atMs": 2289600000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 2332800000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 2376000000,
+          "kind": "play"
+        },
+        {
+          "atMs": 2419200000,
+          "kind": "clean"
+        },
+        {
+          "atMs": 2462400000,
+          "kind": "feed"
+        },
+        {
+          "atMs": 2505600000,
+          "kind": "play"
+        },
+        {
+          "atMs": 2548800000,
+          "kind": "clean"
+        }
+      ],
+      "untilMs": 2592000000,
+      "crossings": [
+        17142000,
+        17142858,
+        17143715,
+        59999143,
+        60000000,
+        60000858,
+        68571429,
+        100798561,
+        149996001,
+        149998001,
+        150000001,
+        179998001,
+        899940001
+      ],
+      "expected": {
+        "schemaVersion": 1,
+        "tMs": 2592000000,
+        "ageMs": 2592000000,
+        "stats": {
+          "hunger": 100000,
+          "happiness": 0,
+          "cleanliness": 18400,
+          "health": 0,
+          "weight": 5000
+        },
+        "rem": {
+          "hunger": 0,
+          "happiness": 0,
+          "cleanliness": 0,
+          "health": 1793400,
+          "weight": 0
+        }
+      }
+    }
+  ]
+}

@@ -437,3 +437,73 @@ clauses is not mechanically verifiable and must be tagged, not faked.
   REQUIRES-JUDGMENT: decay-curve shape (unchanged)
 - State now: P1a/P1b specified at 20 criteria. **Zero code.** Correction 2 applied, round 3 not run.
 - Next: human decides — run round 3, or freeze the spec and build. See escalation in chat.
+
+## [2026-07-31 00:36 HKT] P1a — RUN complete, gate NOT passed. AC1a.11 open.
+
+- branch: `initiative/2026-001-host-prototype` · phase: 2 of 8 — P1a, at RUN/AUDIT
+- **P1a is NOT done.** 13 of 14 criteria have passing evidence; AC1a.11 (mutation gate) fails with
+  23 undeclared survivors. Recording that plainly rather than presenting the phase for approval.
+
+### Built
+- `core/src/` — pure simulation. Zero runtime dependencies, zero host globals, zero randomness.
+  `divmod.ts` is the single division site; `units.ts` the single time-conversion carve-out.
+  `advance` segments Δ at every gate flip and every clamp saturation, located by **binary search**
+  rather than a closed-form solve — deliberately, because the reference oracle solves the same
+  boundary algebraically and the two disagree if either has an off-by-one.
+- `reference/src/engine.ts` — the independent oracle, importing nothing from `core/`. Two
+  algorithms: 1 ms brute force and algebraic segmentation.
+- `corpus/vectors.json` — 19 vectors, content-hashed. **15 cross-checked under BOTH oracles and
+  all 15 agree**, which is the strongest single piece of evidence P1a produced.
+- `tuning/default.json` — every simulation number, none in code.
+- `core/test/core.test.ts` — 27 tests, all passing.
+- `tools/` — four gates: integers-only scan, tuning-is-data scan, import-graph/purity scan,
+  mutation gate.
+
+### Evidence
+- `node --test core/test/core.test.ts` → **27 pass, 0 fail**
+- `tools/check-integers.mjs` → OK (AC1a.4)
+- `tools/check-tuning-data.mjs` → OK (AC1a.13), carve-out `HALF` printed on every run
+- `tools/check-imports.mjs` → OK (AC1a.9 / 1a.12 / 1a.14 / 1a.3)
+- `tools/mutation-gate.mjs` → **FAIL: 75/99 killed, 23 undeclared survivors**
+
+### Rejected / Learnings — four defects the build itself surfaced
+1. **The corpus was not a valid oracle until the reference modelled the same state shape.**
+   `RefState` lacked `schemaVersion`, so core emitted `schemaVersion: undefined` against an
+   expected object that had no such key. Three criteria failed on one root cause. An oracle that
+   does not model the same shape cannot express equality, however correct its arithmetic.
+2. **Coverage measured only decay segments, so every interaction-driven transition was invisible.**
+   A stat that only ever rises when the owner feeds it looked like a stat that never rises.
+3. **Key-liveness judged on one vector's end state calls a live key dead.** `moodFall` looked dead
+   because happiness is pinned at its floor by day 30 — the criterion says *trajectory*, and I had
+   written the test against an endpoint. Now judged across every vector.
+4. **AC1a.11's kill signal was too narrow, by construction.** The criterion says "at least one
+   corpus vector must fail". Corpus vectors run one valid config down the happy path, so a mutation
+   in a validation branch or a guard clause is immortal no matter how good the corpus is. Widened
+   the oracle to the whole acceptance suite; that alone converted 17 immortals into kills. **This
+   is a spec defect, not an implementation one — AC1a.11's wording needs amending at CRITIQUE.**
+
+### The 23 open survivors, triaged
+- **`config.ts` (≈9)** — boundary comparisons in validation the AC1a.14 case table does not pin
+  (e.g. `initial === min` vs `initial < min`). Needs table entries at each boundary.
+- **`divmod.ts` (7)** — the float-misround correction branches never fire, because AC1a.6's
+  `maxAdvanceMs` bound keeps operands below the magnitude where `Math.floor(n/d)` misrounds. The
+  branches are therefore either dead code to remove or a declared equivalence. My added divmod
+  contract test (64k adversarial pairs near 2^53) did **not** kill them — which is itself the
+  finding: they are unreachable given the bound, not merely untested.
+- **`sim/events.ts` (2), parts of `sim/advance.ts` (4)** — clamp and guard comparisons where the
+  assignment is a no-op at equality. Genuinely equivalent; needs written declarations.
+- **`sim/rules.ts` (2)** — `signature()`'s at-bound detection. **The real one.** Flipping it stops
+  the signature marking saturation, and nothing notices: because remainder accumulation is
+  clamp-independent, splitting at a saturation boundary does not change any state. So the
+  saturation-splitting requirement the second CRITIQUE round added (its scenario 1) is **not
+  load-bearing under this rate model** — it would only become load-bearing if a gate threshold
+  coincided with a stat bound. Either the config gains such a rule, or the requirement is dead
+  weight and should be retired with its reasoning recorded.
+- fresh-context AUDIT: **not yet run** — the phase does not pass its own gate, so there is nothing
+  to audit yet. Running one now would audit a known-failing build.
+- adversarial gate: n/a this cycle · back-translation: aligned (round 2)
+- REQUIRES-JUDGMENT: decay-curve shape — and note the current default config kills a neglected pet
+  within ~3 days, which will not survive §4's soak. That is a tuning matter for P1b, not a defect.
+- State now: P1a built, 13/14 criteria evidenced, AC1a.11 failing with 23 triaged survivors.
+- Next: close AC1a.11 — amend its wording (finding 4), add the missing config boundary cases,
+  and resolve the `divmod` and `signature` findings by removal or declared equivalence.

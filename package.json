@@ -1,0 +1,19 @@
+{
+  "name": "vivier",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vivier — a desktop electronic pet. Host prototype.",
+  "engines": { "node": ">=23.6" },
+  "scripts": {
+    "corpus": "node reference/src/generate.ts",
+    "test": "node --test core/test/*.test.ts",
+    "check:integers": "node tools/check-integers.mjs",
+    "check:tuning": "node tools/check-tuning-data.mjs",
+    "check:imports": "node tools/check-imports.mjs",
+    "check:mutants": "node tools/mutation-gate.mjs",
+    "gate": "npm run check:integers && npm run check:tuning && npm run check:imports && npm test && npm run check:mutants"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
