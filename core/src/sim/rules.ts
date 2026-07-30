@@ -38,19 +38,26 @@ export function netRates(
 }
 
 /**
- * The categorical shape of the state: which gates are open, and which stats sit on a bound.
+ * The categorical shape of the state: which gates are open.
  *
- * `advance` segments time at every point where this changes. Both halves matter: a gate flip
- * changes the rate set, and a stat reaching a bound changes whether further movement has any
- * effect. Splitting on gates alone was the defect the second CRITIQUE round found — a
- * saturation boundary breaks step-size composition exactly as a threshold does.
+ * `advance` segments time wherever this changes, because that is where the rate set changes.
+ *
+ * It deliberately does NOT track stats sitting on a bound. The second CRITIQUE round argued a
+ * clamp-saturation boundary breaks step-size composition just as a threshold does; building it
+ * proved otherwise, and the mutation gate is what showed it — flipping the bound comparisons
+ * changed no observable behaviour at all. Two reasons it cannot:
+ *
+ *   * remainder accumulation is clamp-independent, so `rem` after an interval is a pure
+ *     function of total elapsed time regardless of where the interval was cut; and
+ *   * clamping is idempotent, so a stat that saturates mid-interval lands on the same bound
+ *     whether or not the interval was split there.
+ *
+ * Any boundary that DOES change behaviour is a gate, and gates are tracked. Keeping a second,
+ * redundant notion of boundary would be filler that the gate could not kill — code no test can
+ * distinguish from its own absence.
  */
 export function signature(config: Config, stats: Readonly<Record<StatId, number>>): string {
   const parts: string[] = [];
   for (const rule of config.rules) parts.push(isGateOpen(rule, stats) ? 'o' : '.');
-  for (const id of Object.keys(config.stats)) {
-    const spec = config.stats[id];
-    parts.push(stats[id] <= spec.min ? 'L' : stats[id] >= spec.max ? 'H' : '-');
-  }
   return parts.join('');
 }

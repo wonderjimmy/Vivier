@@ -222,20 +222,50 @@ test('AC1a.5 stats stay in range and remainders stay in [0, DEN)', () => {
 // AC1a.6 / AC1a.7 — representable arithmetic, forward-only time
 // ---------------------------------------------------------------------------------------
 
+test('divmod throws outside its domain rather than answering wrongly', () => {
+  const MAX = Number.MAX_SAFE_INTEGER;
+  assert.throws(() => divmod(MAX, 7), RangeError);
+  assert.throws(() => divmod(-MAX, 7), RangeError);
+  assert.throws(() => divmod(MAX - 3, 7), RangeError);
+  // Just inside the domain is fine.
+  assert.deepEqual(divmod(MAX - 7, 7), { q: Math.floor((MAX - 7) / 7), r: (MAX - 7) % 7 });
+});
+
 test('AC1a.6 maxAdvanceMs keeps every intermediate inside the safe-integer range', () => {
   const perStat = new Map<string, number>();
   for (const r of cfg.rules) {
     perStat.set(r.stat, (perStat.get(r.stat) ?? 0) + Math.abs(r.ratePerHour));
   }
   const worst = Math.max(...perStat.values());
-  assert.ok(worst * loaded.maxAdvanceMs + DEN < Number.MAX_SAFE_INTEGER,
-    'the derived bound does not actually bound the summed intermediate');
+  // The bound must leave room for BOTH the carried remainder and divmod's own |n| + d domain.
+  assert.ok(worst * loaded.maxAdvanceMs + DEN + DEN <= Number.MAX_SAFE_INTEGER,
+    'the derived bound does not keep divmod inside its exact-integer domain');
+  // And the largest intermediate advance can actually produce must be accepted by divmod.
+  assert.doesNotThrow(() => divmod(worst * loaded.maxAdvanceMs + DEN - 1, DEN));
 });
 
 test('AC1a.6 advancing beyond maxAdvanceMs errors rather than saturating silently', () => {
   const s = initialState(loaded, 0);
   assert.throws(() => advance(loaded, s, loaded.maxAdvanceMs + 1), AdvanceError);
   assert.throws(() => advance(loaded, s, Number.MAX_SAFE_INTEGER), AdvanceError);
+});
+
+test('AC1a.6 exactly maxAdvanceMs is accepted; one more is not (boundary, not vibes)', () => {
+  const s = initialState(loaded, 0);
+  assert.doesNotThrow(() => advance(loaded, s, loaded.maxAdvanceMs));
+  assert.throws(() => advance(loaded, s, loaded.maxAdvanceMs + 1), AdvanceError);
+});
+
+test('maxSegments is an exact bound: the last permitted segment runs, one more throws', () => {
+  // hunger starts one step below its gate, so this span contains exactly one crossing and
+  // therefore exactly two segments.
+  const raw = JSON.parse(readFileSync('tuning/default.json', 'utf8'));
+  const base = initialState(loaded, 0);
+  const s: State = { ...base, stats: { ...base.stats, hunger: 89_900 } };
+  const two = loadConfig({ ...raw, maxSegments: 2 });
+  const one = loadConfig({ ...raw, maxSegments: 1 });
+  assert.doesNotThrow(() => advance(two, s, 10 * 60_000), 'two segments must fit in a bound of 2');
+  assert.throws(() => advance(one, s, 10 * 60_000), AdvanceError, 'a bound of 1 must reject them');
 });
 
 test('AC1a.7 advance(S, 0) is value-identical; negative and non-integer throw', () => {
@@ -334,6 +364,15 @@ test('AC1a.14 the door rejects structurally invalid configs by key name', () => 
     ['rules[0].ratePerHour', (c) => { (c.rules as Record<string, unknown>[])[0].ratePerHour = 1.5; }],
     ['rules[4].gate.op', (c) => { ((c.rules as Record<string, Record<string, unknown>>[])[4].gate as Record<string, unknown>).op = 'ne'; }],
     ['interactions.feed[0].stat', (c) => { (c.interactions as never as Record<string, Record<string, unknown>[]>).feed[0].stat = 'nope'; }],
+    // min === max is degenerate and must be rejected on its own account. `initial` is moved
+    // onto the collapsed bound too, so the range check is the ONLY thing that can reject this
+    // config — otherwise a weakened `min >= max` still throws, via the initial-in-range check,
+    // and the test passes while the comparison it is aimed at is broken.
+    ['stats.weight', (c) => {
+      const w = (c.stats as never as Record<string, Record<string, number>>).weight;
+      w.min = w.max;
+      w.initial = w.max;
+    }],
   ];
   for (const [key, mutate] of cases) {
     const c = raw();
@@ -346,15 +385,42 @@ test('AC1a.14 the door rejects structurally invalid configs by key name', () => 
   }
 });
 
+test('AC1a.14 the door ACCEPTS values sitting exactly on a legal boundary', () => {
+  // The mirror of the rejection table. Without these, tightening a comparison from `<` to `<=`
+  // would reject perfectly legal configs and no test would notice.
+  const raw = () => JSON.parse(readFileSync('tuning/default.json', 'utf8'));
+  const atInitialMin = raw();
+  atInitialMin.stats.hunger.initial = atInitialMin.stats.hunger.min;
+  assert.doesNotThrow(() => loadConfig(atInitialMin), 'initial === min is legal');
+
+  const atInitialMax = raw();
+  atInitialMax.stats.hunger.initial = atInitialMax.stats.hunger.max;
+  assert.doesNotThrow(() => loadConfig(atInitialMax), 'initial === max is legal');
+
+  const gateAtMin = raw();
+  gateAtMin.rules[4].gate.value = gateAtMin.stats.hunger.min;
+  assert.doesNotThrow(() => loadConfig(gateAtMin), 'a gate sitting on the stat floor is legal');
+
+  const gateAtMax = raw();
+  gateAtMax.rules[4].gate.value = gateAtMax.stats.hunger.max;
+  assert.doesNotThrow(() => loadConfig(gateAtMax), 'a gate sitting on the stat ceiling is legal');
+});
+
 // ---------------------------------------------------------------------------------------
 // Sanity: the pieces the other criteria lean on
 // ---------------------------------------------------------------------------------------
 
-test('signature changes exactly when a gate flips or a stat hits a bound', () => {
+test('signature tracks gate state, and gate state alone', () => {
   const base = initialState(loaded, 0);
   const interior = signature(cfg, base.stats);
-  const atMax: Record<string, number> = { ...base.stats, hunger: cfg.stats.hunger.max };
-  assert.notEqual(signature(cfg, atMax), interior, 'saturation must change the signature');
+  const gate = cfg.rules.find((r) => r.gate !== null)!.gate!;
+  const flipped = { ...base.stats, [gate.stat]: gate.op === 'gte' ? gate.value + 1 : gate.value - 1 };
+  assert.notEqual(signature(cfg, flipped), interior, 'a gate flip must change the signature');
+  // Saturation deliberately does NOT change it: see the reasoning in core/src/sim/rules.ts.
+  // Step-independence across saturation is asserted separately, by AC1a.1's partition test at
+  // the reference-supplied bound-reaching times — which is where it belongs.
+  const atMax = { ...base.stats, weight: cfg.stats.weight.max };
+  assert.equal(signature(cfg, atMax), interior, 'saturation alone must not resegment');
 });
 
 test('apply() clamps once per stat and rejects unknown interactions', () => {
@@ -374,19 +440,30 @@ test('divmod satisfies n = q*d + r with 0 <= r < d, including where float divisi
   const pairs: [number, number][] = [];
   // Ordinary cases, both signs.
   for (const n of [0, 1, -1, 7, -7, DEN, -DEN, DEN - 1, -(DEN - 1)]) pairs.push([n, DEN]);
-  // The cases that matter: |n| near 2^53, where n/d in doubles can round to the wrong side of
-  // an integer. Without the correction step in divmod, some of these produce r < 0 or r >= d.
-  for (let k = 2_400_000_000; k < 2_502_000_000; k += 7_919) {
-    const n = k * DEN;
-    if (n > Number.MAX_SAFE_INTEGER) break;
-    pairs.push([n - 1, DEN], [n, DEN], [n + 1, DEN], [-(n - 1), DEN], [-n, DEN]);
+  // The cases that matter: |n| near 2^53, where n/d in doubles rounds to the wrong side of an
+  // integer and Math.floor lands one off. These are NOT hypothetical — a search over denominators
+  // found real pairs, and they are all NEGATIVE, which is exactly why an earlier version of this
+  // test (positive operands only) failed to kill the divmod-correction mutants.
+  for (const d of [7, 3, 123457, 999983, 1048576, DEN]) {
+    const kmax = Math.floor((Number.MAX_SAFE_INTEGER - d) / d);
+    for (let k = kmax; k > kmax - 3000; k--) {
+      for (const base of [k * d - 1, k * d, k * d + 1]) {
+        if (base + d > Number.MAX_SAFE_INTEGER) continue;   // divmod's stated domain
+        pairs.push([base, d], [-base, d]);
+      }
+    }
   }
   let checked = 0;
   for (const [n, d] of pairs) {
     const { q, r } = divmod(n, d);
     assert.ok(Number.isInteger(q) && Number.isInteger(r), `divmod(${n}, ${d}) not integral`);
     assert.ok(r >= 0 && r < d, `divmod(${n}, ${d}) gave r = ${r}, outside [0, ${d})`);
-    assert.equal(q * d + r, n, `divmod(${n}, ${d}) does not reconstruct n`);
+    // Reconstruct in BigInt, not in doubles. At these magnitudes q*d itself can exceed 2^53
+    // even when n does not, so a float reconstruction would fail on a CORRECT divmod — the
+    // test's own arithmetic would be the weak link rather than the code under test.
+    // (Tests may use BigInt; core/ may not, and does not.)
+    assert.equal(BigInt(q) * BigInt(d) + BigInt(r), BigInt(n),
+      `divmod(${n}, ${d}) does not reconstruct n`);
     checked++;
   }
   assert.ok(checked > 1000, `only ${checked} divmod cases`);

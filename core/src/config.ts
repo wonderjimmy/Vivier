@@ -140,6 +140,8 @@ function deriveMaxAdvanceMs(config: Config): number {
   let worst = 0;
   for (const sum of perStat.values()) if (sum > worst) worst = sum;
   if (worst === 0) return Number.MAX_SAFE_INTEGER;
-  const headroom = Number.MAX_SAFE_INTEGER - config.denominator;
+  // Two denominators of headroom, not one: the intermediate is `rate * dt + rem` (one DEN of
+  // slack for the remainder) and `divmod` additionally requires `|n| + d` to stay representable.
+  const headroom = Number.MAX_SAFE_INTEGER - 2 * config.denominator;
   return divmod(headroom, worst).q;
 }

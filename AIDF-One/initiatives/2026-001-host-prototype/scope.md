@@ -165,9 +165,17 @@ what stops rendering from becoming the place bugs hide.
     folding `advance` over the partition returns a value-identical state to `advance(S, Δ)`.
     ≥ 1000 seeded random partitions, `Δ` from 1 ms to 60 days — **plus, mandatorily, `{t−1, t, t+1}`
     for every threshold-crossing time AND every clamp-saturation time `t` reachable in the vector.**
-    Random points essentially never land near either, and a saturation boundary breaks composition
-    exactly as a threshold does. **Those times are supplied by AC1a.9's independent oracle, never by
-    `core/`** — a `t` obtained from the implementation lets an off-by-one test itself and pass.
+    Random points essentially never land near either. **Those times are supplied by AC1a.9's
+    independent oracle, never by `core/`** — a `t` obtained from the implementation lets an
+    off-by-one test itself and pass.
+    *Amended after P1a's build (2026-07-31): the second CRITIQUE round required `advance` to SPLIT
+    at clamp-saturation times, arguing saturation breaks composition as a threshold does. Building
+    it disproved that, and the mutation gate is what showed it — the bound-tracking code could be
+    inverted with no observable effect. Remainder accumulation is clamp-independent and clamping is
+    idempotent, so cutting at a saturation point cannot change the result; any boundary that DOES
+    change behaviour is a gate. The saturation times remain mandatory PARTITION POINTS here — they
+    cost nothing and guard against a future rate model where that stops being true — but the
+    requirement that the implementation segment at them is retired as unfalsifiable.*
   - **AC1a.2 — threshold-gated rules are gated, and split exactly.** The config must declare at least
     one conditional rule (so this cannot pass vacuously). Per rule: (a) gate open → the gated stat's
     movement equals the value computed from the config rate, `Δ`, **and `S`'s declared remainder
