@@ -645,3 +645,41 @@ Reverting would discard the one part that was independently validated.
 
 - State now: diagnosed, nothing patched. P1a remains NOT DONE.
 - Next: human decision on re-split and on whether to bring the tuning instrument forward.
+
+## [2026-07-31 02:35 HKT] SPIKE — tuning viewer (closes DIAGNOSE root 4's blind spot)
+
+- branch: `initiative/2026-001-host-prototype` · phase: spike, outside the phase sequence
+- Status: **spike, same as P0.** Not P5. Nothing in `spike/tuning-view/` may be imported by
+  `core/` or `host/`; P5 re-authors the shell from scratch. Reuses P0's cat cells and the real core
+  reading the real `tuning/default.json`, so every number shown is what the pet actually does.
+- The condition→sprite mapping here is spike-local and explicitly NOT the ViewModel; P4 defines that
+  against its own criteria. `dead` reuses the `sick` sprite and the page says so — inventing a
+  corpse the art phase has not designed would be the page lying (constitution law 6).
+
+### What it shows — the tuning verdict, now visible instead of inferred
+
+| care pattern | interactions / 30d | outcome |
+|---|---|---|
+| never touched | 0 | **dead, day 2** |
+| 2 / day | 60 | **dead, day 2 h10** |
+| 4 / day | 120 | **dead, day 4** |
+| 8 / day | 240 | survives, health 100% |
+
+Two interactions a day buys **ten hours**. Four buys two days. The curve has no middle: below the
+threshold everything collapses inside 48 h, at or above it the pet is pinned at full health. The
+30-day axis is 93% empty in every pattern but the last.
+
+- **This kills the current config outright** — not a tuning tweak. `scope.md` §3 step 4's own
+  acceptance ("48 h gap → `sick`, 7 d → `dead`") is unreachable: 48 h already yields a corpse. §4
+  SUCCESS (3 days un-reset, attention "on most days") is unreachable. P1b's AC1b.3 contrast
+  requirement is unsatisfiable, because three of the four patterns are indistinguishable — all dead.
+- Root of the shape: health has no floor-resistance and three rules pile onto it, so once hunger
+  saturates (19 h) health falls at full rate with nothing opposing it. The mechanic needs a
+  recovery term that is reachable, and decay rates roughly an order of magnitude slower.
+- **DIAGNOSE root 4 is confirmed rather than closed**: reading the numbers for hours never showed
+  me this; one chart did. The tuning instrument is not a convenience for later — it is the tool the
+  curve cannot be designed without, which is exactly what P1b's INTENT says.
+- fresh-context AUDIT: n/a (spike, produces no shipped code) · REQUIRES-JUDGMENT: the curve itself
+- State now: P1a still NOT DONE (audit findings open). The spike adds no phase progress; it makes
+  the tuning problem judgeable.
+- Next: human's call on re-splitting P1a and on retuning.
