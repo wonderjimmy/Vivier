@@ -243,3 +243,67 @@ clauses is not mechanically verifiable and must be tagged, not faked.
 - layer coverage: 6/6 rows assigned · P0 declares no layer (produces no shipped code) · silent gaps: none new
 - State now: seven phases (P0–P6), roadmap awaiting approval. Zero code, no Design project created.
 - Next: APPROVE — build P0 only, then stop.   Open questions: none.
+
+## [2026-07-30 22:46 HKT] CRAFT — P0 built, audited, filed
+
+- branch: `initiative/2026-001-host-prototype` · phase: **1 of 7 — P0 art viability spike**
+- Did: authored 6 cells (2 base idle frames + 4 condition overlays) at 32×32 logical, ×2 upscaled
+  into the 64×64 sprite cell; wrote a bundle builder that validates every cell, composites
+  base+overlay, encodes PNGs in-tree (no dependencies) and generates 4 preview pages from that one
+  source; created the Claude Design project **Vivier — Pet Sprite System** and pushed the bundle.
+- Why 32×32 logical rather than native 64×64: 1px detail is unreadable at a glance on a 2.8" panel,
+  and chunkier pixels are the point of the form. Disclosed here as a P0 finding for P6 to keep or
+  overturn — it is not settled by this spike.
+
+### Rejected / Learnings — three iterations, two of them failures worth recording
+
+1. **Iteration 1 failed its own glance test and I caught it before it reached the human.** All four
+   overlays signalled through small icons (thought bubble, stray grime pixels, corner glyphs). At
+   across-the-desk size `sick` and `sleeping` read fine — because they change the *face* — while
+   `hungry` and `dirty` collapsed into "content plus a smudge". **The finding: overlays that change
+   the face survive downscaling; overlays that add icons do not.** Every condition therefore needs a
+   face variant, which is only affordable because the face anchors are fixed (ADR-003).
+2. **Iteration 2 fixed that** by moving the signal into half-lidded eyes + frown (`hungry`) and a
+   smudge crossing the face (`dirty`), demoting the icons to secondary cues. Cell count unchanged.
+3. **Iteration 3 redrew the base as a cat** at the human's request mid-phase. Cost: two cells. The
+   four overlays needed **no** change — direct empirical confirmation that ADR-003's anchor rule
+   works, obtained by accident rather than by test. Only collision was the mess pile sitting where
+   the new tail goes; moved to the opposite corner.
+- **Learning — Claude Design does not draw.** It hosts and renders candidates as preview cards.
+
+### Verification
+
+- fresh-context AUDIT: **yes** — dispatched `general-purpose` (sonnet), clean context, did not build
+  the code. Verdicts with evidence:
+  - **AC0.1 PASS** — 6 authored cells counted from the `CELLS` export itself, not from the build's
+    own printout (`cells.mjs:262-269`).
+  - **AC0.2 PASS** — `compose()` (`build.mjs:42-63`) is one generic function; grep found no
+    per-pair branching anywhere. 10 matrix squares from 6 cells, 0 hand-authored pairs.
+  - **AC0.4 PASS** — `core/` and `host/` do not exist yet; no manifest exists; nothing outside
+    `spike/` references `p0-art`.
+  - **AC0.3** — correctly left unjudged (REQUIRES-JUDGMENT, human). Auditor confirmed the evidence
+    page is *fair*: both sizes rendered, captions below the images and coverable.
+  - **Validator adversarially tested** — auditor deleted one character from a cell row; build failed
+    with exit 1 and the exact row named. A validator that cannot fail is not a validator; this one
+    fails. File restored and verified byte-identical by md5.
+- adversarial gate: **found a real hole** — AC0.1/0.2/0.4 constrain the pixels but say nothing about
+  the *conditions under which they are judged*. The page asserted a "device-equivalent" size from
+  pure arithmetic while being viewed on an arbitrary dark webpage on the reviewer's own monitor. A
+  spike could pass every mechanical AC and still hand the human a rigged go/no-go. **Looped back to
+  ROADMAP, added AC0.5** (viewing context disclosed, naming brightness / contrast / reflectance /
+  monitor-and-distance), satisfied it, rebuilt and re-pushed the page.
+- back-translation: aligned — the AC set reconstructs to "prove a 64×64 pet can read as alive under
+  an additive overlay budget, cheaply and without committing to it", which is the stated INTENT.
+- REQUIRES-JUDGMENT: **AC0.3 — open, routed to the human. This is the phase's go/no-go.**
+- layer coverage: n/a — P0 declares no layer and ships no code (`scope.md`).
+- Auditor's other findings, all actioned: worklog had no P0 entry (this entry) · AC0.3 said
+  "≤ 4 conditions" while 5 are rendered, reworded to "the bare base plus each of the ≤ 4 overlays" ·
+  `decisions.md` did not exist though `CLAUDE.md` names it in the reading order — created, ADR-001
+  through ADR-005 promoted into it.
+- CHANGELOG: deliberately not written. P0 ships nothing user-facing; the changelog is for shipped
+  changes, and writing one here would misrepresent a probe as a release.
+
+- State now: P0 built and audited. 4 cards live in the Claude Design project. Zero simulation code —
+  `core/`, `host/` and `tools/` do not exist yet.
+- Next: **STOP — human judges AC0.3.** YES → P1 (deterministic core & replay harness). NO → back to
+  THINK, not to P1.   Open questions: AC0.3.

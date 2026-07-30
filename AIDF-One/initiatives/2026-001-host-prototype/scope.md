@@ -128,11 +128,19 @@ what stops rendering from becoming the place bugs hide.
   - **AC0.2 — composition is real, not staged.** The composition-matrix card renders every
     base × overlay pair from the same source cells, with zero hand-authored per-pair artwork. Binary.
     If ADR-003 cannot survive its own first contact with actual pixels, it is better to know now.
-  - **AC0.3 — REQUIRES-JUDGMENT: the go/no-go.** The owner can name each of the ≤ 4 conditions from
-    the composition matrix at a glance, at 1× scale. **No mechanical check exists — this is the
-    entire point of the phase.** A NO returns the initiative to THINK, not to P1.
+  - **AC0.3 — REQUIRES-JUDGMENT: the go/no-go.** The owner can name each rendered condition — the
+    bare base plus each of the ≤ 4 overlays — from the composition matrix at a glance, at
+    device-equivalent scale. **No mechanical check exists — this is the entire point of the phase.**
+    A NO returns the initiative to THINK, not to P1.
   - **AC0.4 — no leakage.** No P0 asset is imported by `core/`, `host/`, or the runtime manifest.
     Source scan, binary. P6 re-authors from scratch under AC6.1.
+  - **AC0.5 — the viewing context is disclosed, not implied.** *(added after P0's adversarial
+    completeness gate found that AC0.1–0.4 constrain the pixels but not the conditions under which
+    they are judged.)* The glance page states, in the page itself, the arithmetic behind its
+    "device-equivalent" size and names what it cannot reproduce — the target panel's brightness,
+    contrast and reflectance, and the reviewer's own monitor and distance. Binary: the disclosure is
+    present and names all four. Without it a judgment made on a dark webpage can be mistaken for a
+    judgment made on the device.
 - **REQUIRES-JUDGMENT:** AC0.3, and it is a genuine go/no-go on the initiative — not a checkpoint.
 
 ### P1 — Deterministic core & replay harness
