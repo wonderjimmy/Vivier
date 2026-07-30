@@ -268,6 +268,7 @@ what stops rendering from becoming the place bugs hide.
 
 ### P6 — Minimum sprite vocabulary & idle life
 > Layers: 5 (extends) · delivers journey step 2 in earnest · answers `project-intent.md` §8 Q3
+> · assets authored in-repo, reviewed in Claude Design per **ADR-005**
 
 - **INTENT:** The owner has to actually want to keep looking at it. Nothing else in this initiative
   can buy that, and if this phase fails the honest outcome is not buying hardware.
@@ -289,7 +290,13 @@ what stops rendering from becoming the place bugs hide.
     anything else. Source-level + snapshot assertion.
   - **AC6.5 — REQUIRES-JUDGMENT: glance-readability.** The owner can name the pet's condition from
     across the desk, without touching it, for each named condition. **No mechanical check exists.**
-    Routed to the human at CHECK; it must never be marked green by a test.
+    Routed to the human at CHECK via the Claude Design review surface (ADR-005); it must never be
+    marked green by a test.
+  - **AC6.6 — one manifest, no second copy (ADR-005).** The Claude Design preview bundle is
+    *generated* from the same asset manifest the runtime reads. Mutating one cell in the manifest
+    provably changes both the runtime render and the regenerated bundle, and a source scan finds no
+    hand-maintained duplicate of the cell list. Binary. This is what stops the design system and the
+    code drifting apart — the classic failure of keeping a component library beside an app.
 
 ## Exit gate (not a phase — this is §4)
 
