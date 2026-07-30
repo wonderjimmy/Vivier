@@ -20,3 +20,7 @@ Past initiatives are archive. Load on demand, not by default.
   Integration branch is `main`. One branch, one open initiative.
 - Expert command (TRACK-THINK cross-lineage advice): none configured — THINK runs solo and
   notes "expert unavailable" in the worklog.
+- **Fresh-context verification is standing-authorised** (human, 2026-07-30). Every CRAFT AUDIT and
+  every TRACK CHECK dispatches a fresh-context subagent — do not ask again, and do not let a phase
+  pass on self-review. If a fresh-context audit was not run, the worklog says so and the phase is
+  **not** done (framework rule 8).
