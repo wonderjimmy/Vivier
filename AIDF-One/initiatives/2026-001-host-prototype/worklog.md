@@ -507,3 +507,92 @@ clauses is not mechanically verifiable and must be tagged, not faked.
 - State now: P1a built, 13/14 criteria evidenced, AC1a.11 failing with 23 triaged survivors.
 - Next: close AC1a.11 — amend its wording (finding 4), add the missing config boundary cases,
   and resolve the `divmod` and `signature` findings by removal or declared equivalence.
+
+## [2026-07-31 02:05 HKT] P1a — fresh-context AUDIT panel: FAIL. Phase does NOT pass.
+
+- branch: `initiative/2026-001-host-prototype` · phase: 2 of 8 — P1a, at AUDIT
+- verifier panel: 3 fresh-context AUDIT reports. **All three negative.**
+  correctness: FAIL · adversarial: HOLES FOUND · intent-fidelity: DIVERGED
+- AUDIT detects; it does not fix. Nothing below has been patched.
+
+### My own error, found by the panel and confirmed
+**I claimed an amendment that never landed, then repeated the claim in a commit message.**
+Commit `514b431` says "AC1a.11's kill signal was structurally too narrow; amended in scope.md".
+`grep` confirms the AC1a.11 amendment text is absent from `scope.md`; only the AC1a.1 amendment
+landed. Root cause: a `str.replace()`-based edit whose pattern did not match, in a script that
+printed "scope amended" unconditionally — success reported for an operation that silently did
+nothing. This is the exact anti-pattern the constitution's "evidence before claims" exists to stop,
+and I introduced it into the SSOT. The tool was wrong; trusting its output without a read-back was
+mine.
+Second record failure: the worklog had **no entry between 00:36 and now**, so the SSOT still said
+"AC1a.11 failing with 23 survivors" while three commits of closure work sat on top of it.
+
+### High-severity findings (adversarial facet, each demonstrated by running code)
+1. **`maxSegments` makes `advance` step-size DEPENDENT — the exact property AC1a.1 exists to
+   guarantee.** The auditor added one ordinary gated rule ("a starving pet scavenges") that
+   `loadConfig` accepts silently. Folding 18 h at 1 Hz succeeds; a single `advance(s, 18h)` throws
+   `AdvanceError: exceeded maxSegments`. A laptop closed overnight kills the pet with an exception
+   while a 1 Hz host is fine. The gate oscillates per-millisecond, so 4096 segments is ~8 s of
+   simulated time. Nothing in P1a detects or forbids an oscillating gate at config load.
+2. **AC1a.1's mandatory partition points are self-weakened.** `generate.ts` computes each vector's
+   `crossings` **once, from the initial state, under the initial rate set, ignoring events**. Proof:
+   `day-attentive.crossings` is byte-identical to `day-neglect.crossings` despite 18 interaction
+   events; and in `thirty-day-neglect` the moment health reaches 0 — the pet's death — is absent
+   from the stored crossings, so `{t−1,t,t+1}` never lands there.
+3. **`divmod`'s domain guard escapes as a raw `RangeError` from `advance`.** With
+   `denominator: 1`, `advance(s, maxAdvanceMs)` throws from the binary-search midpoint
+   `divmod(lo + hi, HALF)` — `deriveMaxAdvanceMs` bounds `rate·dt + rem` but never `lo + hi ≤ 2Δ`.
+   The comment I wrote in `divmod.ts` claiming "`advance` can never reach the guard … asserted by
+   test" **is false**; the test verifies one config, not the derivation.
+
+### Criteria implemented weaker than written (correctness facet)
+- **AC1a.10** says "each stat arrives at each of its bounds"; the checker tests `hitMax.size === 0`
+  — *any* stat, *any* bound. `weight` never reaches its max in any vector and the gate is green.
+- **AC1a.13**'s dead-key test covers rule `ratePerHour` and each interaction's *first* effect only.
+  `gate.value`, `stats.{min,max,initial}`, `denominator`, `maxSegments` and secondary interaction
+  effects are never liveness-checked.
+- **AC1a.3**'s "module-level values deep-frozen, asserted at test start" and "each vector in a fresh
+  module instance" are both absent — a source scan was substituted without disclosure.
+- **AC1a.2(c)** has no test at all; the `{tc−1,tc,tc+1}` test is AC1a.1's composition check, which
+  would pass with a uniformly off-by-one crossing.
+- **AC1a.11/AC1a.2b**: the mutation classes AC1a.2b *mandates* — rule-order swap and clamp-inside-
+  the-loop — are not in `CLASSES`. `rules.ts` claims the order swap is "justified in the worklog";
+  it is in neither.
+- **AC1a.8** convention 1 is unfalsifiable on the shipped config: the auditor replaced the
+  comparator with a tie-REVERSING one and all 31 tests still passed, because no two interactions in
+  `tuning/default.json` are order-sensitive.
+
+### The tuning finding, which is worse than I reported
+Unattended from `initialState`: hunger pinned at max from 19 h, happiness 0 by 28 h, **health 0 at
+~47 h**, cleanliness 0 by 50 h. A 48 h gap yields a corpse — directly contradicting `scope.md` §3
+step 4's own acceptance ("48 h → `sick`, 7 d → `dead`"). Over 30 days, the corpus's own
+`thirty-day-attentive` (60 care events) differs from total abandonment in **one stat**. Holding
+steady needs ≈8 interactions/day against an intent asking for attention "on most days".
+**§4's 3-day un-reset run is not reachable on this config, and P1b's AC1b.3 contrast requirement is
+already unsatisfiable by it.** I logged this at 00:36 as "~3 days" and framed it as a neglect-tuning
+matter; it is ~2 days and it also kills a cared-for pet.
+
+### Process hazard
+`tools/mutation-gate.mjs` rewrites `core/src` **in place**, restoring only in `finally`. During the
+audit the working tree briefly carried an applied mutant. An interrupted or concurrent run can leave
+a mutated core committable. Needs to run against a copy, not the tree.
+
+### What the panel confirmed as sound
+- All 8 equivalence declarations verified algebraically: 8/8 sound.
+- **AC1a.1's amendment is legitimate** — independently corroborated by 2440 differential fuzz
+  configs against the 1 ms oracle, with gate thresholds placed exactly on `min`/`max`: zero
+  divergences. Not a criterion bent to fit the code.
+- **Binary-search monotonicity holds** — 1252 random configs, signature enumerated at every dt:
+  zero non-monotone predicates.
+- **The oracle is genuinely independent** — different algebra, and it segments *more* finely than
+  core while still agreeing.
+
+- fresh-context AUDIT: **yes — and it FAILED.** · adversarial gate: holes found ·
+  back-translation: DIVERGED · REQUIRES-JUDGMENT: decay-curve shape (now urgent, see above)
+- layer coverage: **gap found** — the Layer-1 matrix row assigns `stage` egg→child to P1a, and no
+  `stage` field exists, with no worklog entry reassigning it to P3. An inherited criterion lapsed.
+- State now: P1a **NOT DONE**. 3 high-severity defects, 6 criteria weaker than written, 1 lapsed
+  matrix row, 1 false record now corrected, 1 process hazard, and a tuning config that cannot reach
+  §4 SUCCESS.
+- Next: DIAGNOSE before touching anything. Do not forward-patch — several findings share a root
+  (criteria implemented by a script that was never itself tested against its criterion text).
