@@ -383,3 +383,57 @@ clauses is not mechanically verifiable and must be tagged, not faked.
 - State now: P1 specified but **not built**. RUN blocked pending the human's call below.
 - Next: human decides the two escalations, then rulers are re-trued and the panel re-run to two
   consecutive clean rounds before RUN.
+
+## [2026-07-30 23:40 HKT] P1a/P1b — CRITIQUE round 2 + correction 2. STILL NOT BUILT.
+
+- branch: `initiative/2026-001-host-prototype` · phase: 2 of 8 — P1a, at CRITIQUE (auto-correct loop)
+- Correction 1 (after round 1): split P1 → P1a/P1b, rewrote the AC set, added the harness-as-
+  instrument criteria the back-translation gate said were missing.
+
+### Round 2 panel result — NOT clean
+- **intent-fidelity: CLEAN.** Both reconstructions align with their INTENT lines; the round-1
+  divergence is genuinely repaired, not relabelled. One narrow crack found: `stage` is tunable
+  (AC1b.5 validates stage ages) but not *readable* — AC1b.4 required stats and gate states, and a
+  stage is neither, so an owner could re-tune a stage age and be unable to see the transition day.
+  That lands directly on §4's exit criterion ("changed life stage at least once"). Fixed in AC1b.4.
+- **correctness: 2 DEFECTS.** (a) AC1a.2 said the gated stat "moves by exactly `rate × Δ`" — which
+  would **reject a correct implementation**, because the carry-remainder design AC1a.4 mandates makes
+  actual movement a function of `S`'s remainder too. Reworded. (b) AC1a.13's literal ban was not
+  mechanically decidable and would false-positive on structural constants. Pinned to a one-hop AST
+  rule with a named carve-out.
+- **adversarial: HOLES FOUND — 11 new scenarios, and 5 of round 1's 6 closures were only PARTIAL.**
+  The sharpest:
+  1. **Clamp saturation is a splitting boundary too.** Round 1 closed the threshold case; a stat
+     saturating mid-`Δ` breaks composition identically, and a saturation time is not a threshold
+     crossing, so the mandatory partition points never covered it. *Hole 5 re-opened one metre left.*
+  2. **The crossing times were still self-certified.** AC1a.2 required the *rate* be hand-computed,
+     but nothing said where `tc` came from — so a core computing its crossing 1 ms late would be
+     tested at its own wrong `tc` and the corpus would freeze the off-by-one.
+  3. **AC1a.12 contradicted AC1a.1.** A live seed consumed as a function of `Δ` makes step-size
+     independence *unsatisfiable*, because re-chunking changes the draw count. Resolved by removing
+     randomness from P1a entirely rather than constraining it.
+  4. `const obj = {}` at module scope defeats a "no module-level mutable binding" scan → deep-freeze.
+  5. Config validation could live in the harness while `core/` accepted anything → AC1a.14.
+  6. A `defaults.json` inside `core/` would silently fill config gaps, defeating P1b's intent while
+     every criterion stayed green → AC1a.13's no-second-numeric-file clause.
+  7. Coverage was satisfiable by vectors whose *initial states* already sat at the bounds → coverage
+     is now measured on transitions, by simulated evolution.
+  8. The two oracles never overlapped, wasting the free independent cross-check → ≥10 shared vectors.
+- Correction 2 applied: AC1a set now 14 criteria (added AC1a.2b, AC1a.14; AC1a.12 inverted from
+  "seed is load-bearing" to "P1a is randomness-free"), AC1b.4 and AC1b.5 extended.
+
+### Rejected / Learnings
+- **Round 1's closures were graded too generously by me.** I read "the panel closed six holes" as done
+  when five were partial. The lesson is that a closure has to be re-attacked, not assumed — which is
+  exactly what a *second* round is for, and why the framework demands consecutive clean rounds rather
+  than one.
+- **The adversarial facet is not converging on zero.** Round 1: 6 holes. Round 2: 11 new. Each round's
+  findings are real and each is smaller than the last, but the spec has grown from 7 criteria to 20
+  for a component of a few hundred lines. This is the known failure mode of unbounded adversarial
+  review, and the framework's 3-attempt bound exists for it. Recorded here as the reason the next
+  decision is a human one.
+- fresh-context AUDIT: n/a (nothing built) · verifier panel: 3 round-1 + 3 round-2 reports (above)
+- adversarial gate: **holes found, corrected** · back-translation: **aligned** ·
+  REQUIRES-JUDGMENT: decay-curve shape (unchanged)
+- State now: P1a/P1b specified at 20 criteria. **Zero code.** Correction 2 applied, round 3 not run.
+- Next: human decides — run round 3, or freeze the spec and build. See escalation in chat.

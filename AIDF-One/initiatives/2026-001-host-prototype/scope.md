@@ -88,7 +88,7 @@ Cuts from the candidate list in `project-intent.md` §6, with the reason each wa
 
 | Layer (from constitution) | CHANGE / NO CHANGE | Phase |
 |---|---|---|
-| **1. Sim Core** | **CHANGE:** pet state (hunger, happiness, cleanliness, weight, health, age), real-time decay, life-stage transitions, illness/death resolution, interaction events — pure and deterministic → **AC:** `advance(state, Δ)` returns a state whose `stage` field flips `egg`→`child` exactly at the age threshold named in the tuning config; and replaying an identical `(timestamp, event)` list twice returns value-identical states. | **P1** (P3, P4 extend) |
+| **1. Sim Core** | **CHANGE:** pet state (hunger, happiness, cleanliness, weight, health, age), real-time decay, life-stage transitions, illness/death resolution, interaction events — pure and deterministic → **AC:** `advance(state, Δ)` returns a state whose `stage` field flips `egg`→`child` exactly at the age threshold named in the tuning config; and replaying an identical `(timestamp, event)` list twice returns value-identical states. | **P1a** (P1b, P3, P4 extend) |
 | **2. Clock** | **CHANGE:** elapsed-time resolution from a platform-supplied timestamp, with an explicit anomaly path for a clock that moved backwards → **AC:** given saved `t0` and supplied `t1 < t0`, the resolver returns `elapsed === 0` and `clockAnomaly === true` on the returned value; the pet is never aged by a negative or unbounded interval. | **P2** |
 | **3. Persistence** | **CHANGE:** versioned save schema, validate-on-load, `clockAnomaly` persisted, budgeted write cadence (debounced + immediate on significant events) → **AC:** a save blob with a missing or unknown `schemaVersion`, or a stat outside its declared range, causes load to return an explicit `LoadError` value — never a silently defaulted pet; **and** under a continuous run a counting fake adapter records ≤ N writes per simulated hour (G2). | **P2** |
 | **4. Input** | **CHANGE:** feed / play / clean marshalled into timestamped core events → **AC:** each control emits exactly one core event carrying the platform timestamp, and replaying the emitted event log from the initial state reproduces the live state value-identically. | **P4** (vocabulary) · **P5** (marshalling) |
@@ -105,7 +105,7 @@ machinery — it is not a note beside it.
 
 ## Phases (from ROADMAP — 2026-07-30 22:03 HKT)
 
-Six phases, each independently testable and safe to ship alone. Phases 1–4 are headless: the pet is
+Eight phases, each independently testable and safe to ship alone. Everything through P4 is headless: the pet is
 fully alive and fully verified before a single pixel is drawn. That ordering is deliberate — it is
 what stops rendering from becoming the place bugs hide.
 
@@ -143,44 +143,163 @@ what stops rendering from becoming the place bugs hide.
     judgment made on the device.
 - **REQUIRES-JUDGMENT:** AC0.3, and it is a genuine go/no-go on the initiative — not a checkpoint.
 
-### P1 — Deterministic core & replay harness
-> Layers: 1 (partial) · delivers journey step 5
+### P1a — Deterministic core & frozen corpus
+> Layers: 1 (partial) · *(P1 was split into P1a/P1b after its CRITIQUE panel roughly doubled its
+> acceptance set — see worklog 2026-07-30 23:09. Downstream phase numbers are unchanged.)*
+
+- **INTENT:** The owner must be able to trust that the pet's state is the honest consequence of the
+  time that actually passed and the care they actually gave — identical on any machine, at any tick
+  rate, across any gap. Without that, every later judgement about the pet is a judgement about an
+  artefact of how often the code happened to run.
+- **failure modes:** decay depends on tick frequency (60 Hz and 1 Hz grow different pets) · float
+  drift · Δ of 0 / negative / 60 days mishandled · stats escape their declared range · one big step ≠
+  many small steps · **hidden state that is not a declared stat** (the remainder accumulator, an
+  unclamped shadow value) escapes every integer and range check · **conditional rules quietly made
+  unconditional** so step-independence passes trivially · a crossing-time off-by-one that random
+  partitioning can never land on · **overflow past 2^53 while still `Number.isInteger`** · **the
+  corpus generated from the implementation**, making every corpus check a tautology · corpus coverage
+  unspecified, so one trivial vector satisfies most of the set · event ordering undefined (unsorted,
+  equal timestamps, events predating the initial state) · an inert `seed` that buys nothing.
+- **acceptance:**
+  - **AC1a.1 — step-size independence (invariant).** For any state `S` and any partition of `Δ`,
+    folding `advance` over the partition returns a value-identical state to `advance(S, Δ)`.
+    ≥ 1000 seeded random partitions, `Δ` from 1 ms to 60 days — **plus, mandatorily, `{t−1, t, t+1}`
+    for every threshold-crossing time AND every clamp-saturation time `t` reachable in the vector.**
+    Random points essentially never land near either, and a saturation boundary breaks composition
+    exactly as a threshold does. **Those times are supplied by AC1a.9's independent oracle, never by
+    `core/`** — a `t` obtained from the implementation lets an off-by-one test itself and pass.
+  - **AC1a.2 — threshold-gated rules are gated, and split exactly.** The config must declare at least
+    one conditional rule (so this cannot pass vacuously). Per rule: (a) gate open → the gated stat's
+    movement equals the value computed from the config rate, `Δ`, **and `S`'s declared remainder
+    field** — hand-derived, not read off the implementation (stating it as bare `rate × Δ` would
+    reject a correct carry-remainder implementation); (b) gate closed throughout `Δ` → the gated stat
+    is value-identical; (c) at the exact crossing `tc`, `advance(S, tc−1 ms)` leaves it unmoved and
+    `advance(S, tc+1 ms)` moves it by exactly one millisecond's worth.
+  - **AC1a.2b — rule composition is declared, not emergent.** Where two rules act on one stat
+    simultaneously, the evaluation order, whether contributions are additive, and the rule that
+    **clamping is applied exactly once per stat per sub-interval** must be written down *before*
+    being tested. The config must declare at least one overlapping pair, the corpus must contain a
+    vector exercising it at a bound, and AC1a.11's mutation set must include swapping rule order and
+    moving the clamp inside the loop. Undeclared composition semantics would ship as the ESP32
+    contract by accident.
+  - **AC1a.3 — the state is complete (invariant).** Anything surviving across an `advance` call is a
+    declared state field. Verified three ways: a plain-JSON clone round-trip of `S` is value-identical;
+    **every module-level value in `core/` is deep-frozen, asserted at test start** (a `const` holding
+    a mutable object is the obvious way around a "no module-level `let`" scan); and the corpus runner
+    produces identical results when vectors run in randomised order and when each runs in a fresh
+    module instance.
+  - **AC1a.4 — integers only, everywhere (invariant).** No float literal and no division yielding a
+    non-integer in core source; `Number.isInteger` holds on **every numeric field of every state**
+    produced anywhere in the corpus, not only declared stats, so remainders are covered.
+    `Math.round`/`floor`/`ceil`/`trunc`, `| 0`, `>>> 0`, `parseInt`, `toFixed` and bare `/` appear
+    nowhere in `core/` except inside **one `divmod` function definition — one definition, any number
+    of call sites** — whose remainder is written back into state. **Fails the build.**
+  - **AC1a.5 — range closure (invariant).** Every declared stat within its `[min,max]` and every
+    remainder within `[0, DEN)`, for every state produced anywhere in the corpus and under property
+    testing with adversarial `Δ` and adversarial event orderings.
+  - **AC1a.6 — arithmetic stays representable.** The core declares `MAX_ADVANCE_MS` such that
+    **`(Σ of all rates that can act on one stat simultaneously) × MAX_ADVANCE_MS + DEN < 2^53`** —
+    the sum, not the largest single rate — asserted at config-load against the actual config.
+    `advance` with `Δ > MAX_ADVANCE_MS` returns an explicit error rather than saturating silently.
+  - **AC1a.7 — time is forward-only.** `advance(S, 0)` returns a value-identical state; `advance`
+    with negative `Δ` throws rather than ages. Binary.
+  - **AC1a.8 — ordering and interval conventions are declared, not accidental.** Written down before
+    being tested, then asserted table-driven (≥ 6 cases): an unsorted event list · two events at an
+    identical timestamp · an event predating the initial state · **whether an event at exactly `t0`
+    and at exactly `t0+Δ` falls inside the advance** · **an event coincident with an internal
+    threshold crossing or clamp saturation**. Undefined is a failure even when it happens to be
+    stable.
+  - **AC1a.9 — the corpus is independent, cross-checked and frozen.** No expected state may be
+    produced by `core/`. Short vectors (≤ 1 h) take theirs from a brute-force reference stepping 1 ms
+    at a time; long vectors from closed-form integer arithmetic in the same separate reference module,
+    which **shares no code with `core/`** (import-graph assertion). **≥ 10 vectors must lie in range
+    of BOTH oracles, and for each the two expected states must be value-identical** — a disagreement
+    fails the build; this is a genuinely independent cross-check the corpus already pays for.
+    Crossing and saturation times are enumerated by that module and stored in the corpus. The corpus
+    file carries a content hash asserted by the test run. *(Honest limit: an independent **algorithm**,
+    not an independent **author** — it cannot catch a misreading of the spec shared by both, and the
+    import-graph assertion catches imports, not transcription. Recorded, not papered over.)*
+  - **AC1a.10 — coverage is measured on transitions, not values.** The coverage checker fails the
+    build unless, **by simulated evolution rather than by initial condition**: each stat is observed
+    strictly increasing in one vector and strictly decreasing in another, and arrives at each of its
+    bounds from a strictly interior value within a single vector; each gated rule is observed
+    transitioning off→on and on→off within a single vector; every interaction type appears; `Δ`
+    spans `{0, 1 ms, 1 h, 30 d}`; at least one vector carries an unsorted event list and one an event
+    at exactly a crossing time.
+  - **AC1a.11 — mutation gate, generated not curated.** Mutants are produced **exhaustively over
+    declared operator classes** — every relational and equality operator in the decay path flipped,
+    every clamp deleted, every config rate ±1, every interval split removed, the remainder carry-back
+    removed, rule order swapped — not hand-picked from places already tested. **Zero surviving
+    mutants**; any mutant claimed equivalent is justified in writing in `worklog.md`.
+  - **AC1a.12 — P1a is randomness-free.** `core/` contains no PRNG and `advance`/`replay` take no
+    seed; source scan, binary. *(Resolves a genuine contradiction the panel surfaced: entropy consumed
+    as a function of `Δ` makes AC1a.1 unsatisfiable, since re-chunking changes the draw count. Nothing
+    in P1a needs randomness, so it is removed rather than constrained. A later phase that needs it
+    introduces it with its own criteria — consumed only at discrete event resolution, never per-`Δ`.)*
+  - **AC1a.13 — tuning is data, every key is live, and there is no second copy.** An AST scan over
+    the core's simulation modules permits only `0`, `1` and `-1` **as a direct operand, one hop, of an
+    expression that reads or writes a state field**; structural/cardinality constants and the declared
+    time-conversion `units` module are carved out by name. Mutating **each** config key individually
+    must change the corpus trajectory — a dead key fails the phase. **`core/` contains no numeric data
+    file other than the tuning config**, and the set of numeric parameters reachable by the simulation
+    equals the config schema's key set exactly — a defaults file that silently fills gaps would defeat
+    P1b's whole intent while every criterion stayed green.
+  - **AC1a.14 — config enters through exactly one validating door.** Config validation is a `core/`
+    entry point, and every consumer — corpus generator, reference module, harness, and every later
+    phase's loader — obtains config only through it. Source scan, binary. A validator living only in
+    the harness leaves the core accepting anything.
+- **REQUIRES-JUDGMENT:** whether the decay curve's *shape* feels right. No oracle exists. A green
+  P1a proves the curve is faithfully executed, never that it is well chosen.
+- **design consequence (worth stating before building):** exact step-size independence forbids
+  per-step rounding, so rates are integers in the state's own unit scale and every division carries
+  its remainder back into state. It also forbids evaluating a whole `Δ` in one shot when a rule is
+  *conditional* on a threshold, so `advance` must internally split `Δ` at exact crossing times. This
+  is the most important structural implication in the initiative and is far cheaper to build in than
+  to retrofit.
+
+### P1b — Tuning instrument
+> Layers: 1 (extends) · delivers journey step 5 · *(carries the half of the original P1 INTENT that
+> its acceptance set left unencoded — found by the back-translation gate at CRITIQUE)*
 
 - **INTENT:** The owner must be able to judge a month of the pet's life without living a month, and
-  trust that what the harness shows is exactly what the pet will really do.
-- **failure modes:** decay silently depends on tick frequency (60 Hz and 1 Hz grow different pets) ·
-  float drift makes two runs differ · Δ of 0 / negative / 60 days mishandled · stats escape their
-  declared range · the harness is fast because it *approximates*, i.e. one big step ≠ many small
-  steps · tuning constants baked into code, so the harness tunes something the pet doesn't use.
+  to change how the pet decays and then re-judge it, without editing code.
+- **failure modes:** the harness hardcodes its event list and its config, so it is a fixture and not
+  an instrument — green, with the owner no closer to tuning anything · the harness prints numbers the
+  core never produced, because nothing binds stdout to core state and an approximating harness is
+  exactly as reproducible as a correct one · an invalid config runs silently and thirty days of
+  tuning produce a meaningless flat pet · the output is byte-stable but illegible, so a crossing
+  cannot be located by reading it · only one care pattern ships, so there is nothing to compare.
 - **acceptance:**
-  - **AC1.1 — step-size independence (invariant).** For any state `S` and any partition of `Δ` into
-    consecutive sub-intervals, folding `advance` over the partition returns a value-identical state
-    to `advance(S, Δ)`. Property test, ≥1000 seeded random partitions, `Δ` from 1 ms to 60 days.
-  - **AC1.2 — determinism (invariant).** `replay(initial, seed, events)` run twice yields
-    byte-identical serialised state, over every vector in the golden-vector corpus.
-  - **AC1.3 — no floating point (invariant).** Core source contains no float literal and no division
-    yielding a non-integer; every stat field in every corpus end-state satisfies `Number.isInteger`.
-    Source scan + runtime sweep; **fails the build**.
-  - **AC1.4 — range closure (invariant).** Every stat in every state produced anywhere in the corpus
-    lies within its declared `[min,max]`. Property-tested with adversarial `Δ` (0, 1 ms,
-    `MAX_SAFE_INTEGER`, 60 days) and adversarial event orderings.
-  - **AC1.5 — time is forward-only.** `advance(S, 0)` returns a value-identical state; `advance` with
-    negative `Δ` throws rather than ages. Binary.
-  - **AC1.6 — the harness.** Consumes a 30-day synthetic event list, exits 0 in < 1 s wall clock,
-    prints a per-day trajectory of every stat; two runs at the same seed produce byte-identical
-    stdout.
-  - **AC1.7 — tuning is data, not code.** Every decay rate, threshold and interaction magnitude is
-    read from the tuning config; a source scan finds zero numeric simulation constants in core logic
-    files, and mutating one config value provably changes the corpus trajectory.
-- **REQUIRES-JUDGMENT:** whether the decay curve's *shape* feels right. No oracle exists — that is
-  what tuning and the §4 soak are for. A green P1 proves the curve is faithfully executed, never
-  that it is well chosen.
-- **design consequence of AC1.1 (worth stating before building):** exact step-size independence
-  forbids per-step rounding, so rates must be integers in the state's own unit scale (no division in
-  the decay path). It also forbids evaluating a whole `Δ` in one shot when a rule is *conditional* on
-  a threshold — e.g. "health decays only while hunger is at 0" — so `advance` must internally split
-  `Δ` at exact threshold-crossing times. This is the single most important structural implication in
-  the initiative and is far cheaper to build in than to retrofit.
+  - **AC1b.1 — the harness is an instrument, not a fixture.** It takes the event list and the tuning
+    config as arguments. Running an alternative care pattern and an alternative config requires
+    **zero source edits**. Binary: two CLI invocations differing only in their input files produce
+    different trajectories.
+  - **AC1b.2 — the output is the core's state, unmodified.** Every printed value is a serialised
+    state field; a source scan finds zero rounding, scaling or derived quantities between core state
+    and stdout, and the printed trajectory is value-identical to folding the core's public `advance`
+    over the same event list. Binary.
+  - **AC1b.3 — contrasting patterns ship as data.** At least two care patterns — attentive and
+    neglectful — ship as input files, not code, and their 30-day trajectories differ in at least
+    three stats. Without a contrast there is nothing to judge a curve against.
+  - **AC1b.4 — crossings are legible.** The per-day output carries, for each day, every stat's value,
+    each threshold-gated rule's on/off state **with the exact timestamp of every transition** (a gate
+    that toggles twice between daily samples would otherwise make this check vacuous rather than
+    failing), **and every enumerated state field, `stage` included**. Binary: the crossing day derived
+    by reading the output equals the crossing day computed from the core. Stage is neither a stat nor
+    a rate rule, yet §4's exit criterion turns on seeing a stage change — without this clause an owner
+    can re-tune a stage age and not be able to see the result.
+  - **AC1b.5 — the config is validated on load.** A config violating the declared schema returns an
+    explicit `ConfigError` naming the offending key — never a defaulted, clamped or zeroed run.
+    Table-driven, ≥ 11 invalid cases: non-integer value, negative rate, **a zero rate** (the exact
+    flat-pet case that motivated this criterion, and neither non-integer nor negative), **a
+    zero-length stage duration**, **a gate whose condition can never open**, `min ≥ max`,
+    non-monotonic stage ages, a threshold inconsistent with its stat's direction, an interaction
+    magnitude outside its target stat's range, an unknown key, a missing key. Constitution law 4 demands this of saves;
+    the config is the file the owner edits daily and deserves no less.
+  - **AC1b.6 — fast and reproducible.** A 30-day event list completes in < 1 s wall clock, exits 0,
+    and produces byte-identical stdout across two runs with identical inputs.
+- **REQUIRES-JUDGMENT:** none mechanical. But note that this phase makes tuning *possible*; whether
+  the resulting curve is *good* stays with P1a's judgment item and the §4 soak.
 
 ### P2 — Continuity: clock trust & durable state
 > Layers: 2, 3 · delivers journey step 1 · closes G2 and G3
