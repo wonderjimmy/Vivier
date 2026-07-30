@@ -103,8 +103,14 @@ clauses is not mechanically verifiable and must be tagged, not faked.
 
 - **ADR-004 — age in absentia, but death requires a witnessed live tick.** See Q1.
 
-- **ADR-005 — sprite vocabulary authored in-repo, reviewed as a Claude Design system.**
-  *(added 2026-07-30 at human request, as a ROADMAP amendment — see the amendment entry below.)*
+- **ADR-005 — sprite vocabulary explored *and* reviewed in a Claude Design system, authored in-repo.**
+  *(added 2026-07-30 at human request as ROADMAP amendment 1; **revised at amendment 2**, before
+  promotion, to cover design *exploration* and not only review of a finished manifest.)*
+  **Revision:** the Design project is where the pet's visual language is *developed* — candidate
+  designs are generated as HTML/CSS cards, pushed, judged by the human in the pane, and iterated.
+  It is a working surface, not just an inspection window. Claude Design does not itself draw: it
+  hosts and renders candidates. The winning vocabulary is then re-authored into the repo manifest,
+  which remains the SSOT.
   Context: AC6.5 (glance-readability) has no mechanical check and needs a real review surface, and
   ADR-003's additive art cost only holds if the overlay structure is honoured *in the assets*, not
   merely in the ViewModel type — which is a thing you have to look at to know.
@@ -209,3 +215,31 @@ clauses is not mechanically verifiable and must be tagged, not faked.
 - layer coverage: 6/6 rows assigned to phases · silent gaps: none new
 - State now: roadmap complete and amended, awaiting approval to build P1. Zero code.
 - Next: APPROVE — build P1 only, then stop.   Open questions: none.
+
+## [2026-07-30 22:30 HKT] TRACK — ROADMAP (amendment 2)
+
+- branch: `initiative/2026-001-host-prototype` · phase: pre-APPROVE (roadmap not yet approved)
+- Did: human clarified they want Claude Design involved in **designing** the pet, not only reviewing
+  a finished manifest. Revised ADR-005 accordingly (exploration surface, not inspection window) and
+  **inserted P0 — art viability spike** ahead of P1.
+- Why: the clarification exposed a real ordering defect in THINK that I own. `project-intent.md` §8
+  Q3 states plainly that the minimum sprite set is "a direct proxy for whether this project ships at
+  all" — and ROADMAP nonetheless placed all art at P6, *last*. That schedules the project's own
+  stated ship-or-not question after five phases of simulation work have already been paid for. A
+  cheap, bounded probe belongs first. THINK read Q3 as an art-cost question and missed that it is a
+  viability question.
+- Rejected / Learnings:
+  - **Rejected — pulling all of P6 forward.** Drawing the full vocabulary before P4 exists means
+    drawing without a settled condition list; the shipping set still belongs at P6. P0 is a probe
+    with a hard budget (AC0.1) and a no-leakage rule (AC0.4) precisely so it cannot drift into P6.
+  - **Learning — Claude Design does not draw.** It hosts and renders candidates as preview cards; the
+    designs are generated and pushed. Expecting it to produce art would have left P6 with a review
+    surface and no assets. Recorded so a later session does not re-form the expectation.
+  - **Learning — one condition list already exists** (AC4.1's vocabulary + the four stages), so P0 is
+    not blocked on P4 despite preceding it. It draws against a named subset, not an invented one.
+- Phases P1–P6 unchanged in content; P6 gains AC6.6 from amendment 1. No code written.
+- fresh-context AUDIT: n/a (no build) · verifier panel: n/a
+- adversarial gate: n/a · back-translation: n/a · REQUIRES-JUDGMENT: AC0.3 (new, go/no-go), AC6.5
+- layer coverage: 6/6 rows assigned · P0 declares no layer (produces no shipped code) · silent gaps: none new
+- State now: seven phases (P0–P6), roadmap awaiting approval. Zero code, no Design project created.
+- Next: APPROVE — build P0 only, then stop.   Open questions: none.

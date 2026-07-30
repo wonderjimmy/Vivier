@@ -109,6 +109,32 @@ Six phases, each independently testable and safe to ship alone. Phases 1–4 are
 fully alive and fully verified before a single pixel is drawn. That ordering is deliberate — it is
 what stops rendering from becoming the place bugs hide.
 
+### P0 — Art viability spike *(added at ROADMAP amendment 2)*
+> Layers: none — produces no shipped code · answers the ship-or-not half of `project-intent.md` §8 Q3
+> · runs in Claude Design per **ADR-005**
+
+- **INTENT:** The owner needs to know, *before* paying for five phases of simulation, whether a 64×64
+  pet can read as alive at all under an additive overlay budget — because `project-intent.md` §8 Q3
+  calls this "a direct proxy for whether this project ships at all", and discovering the answer at
+  P6 would waste everything built before it.
+- **failure modes:** the spike quietly becomes a full art commission (it is a probe, not a
+  deliverable) · it explores a style that reads well once but cannot scale to four life stages ·
+  it answers "is this attractive" instead of "is this legible at a glance" — the wrong question,
+  attractively answered · its assets leak into the build and become the shipping set without ever
+  passing P6's budget criteria.
+- **acceptance:**
+  - **AC0.1 — probe budget.** Exactly one life stage's base pose (2 idle frames) plus ≤ 4 overlays.
+    Binary, counted against the pushed card set. This is the ruler that stops P0 becoming P6.
+  - **AC0.2 — composition is real, not staged.** The composition-matrix card renders every
+    base × overlay pair from the same source cells, with zero hand-authored per-pair artwork. Binary.
+    If ADR-003 cannot survive its own first contact with actual pixels, it is better to know now.
+  - **AC0.3 — REQUIRES-JUDGMENT: the go/no-go.** The owner can name each of the ≤ 4 conditions from
+    the composition matrix at a glance, at 1× scale. **No mechanical check exists — this is the
+    entire point of the phase.** A NO returns the initiative to THINK, not to P1.
+  - **AC0.4 — no leakage.** No P0 asset is imported by `core/`, `host/`, or the runtime manifest.
+    Source scan, binary. P6 re-authors from scratch under AC6.1.
+- **REQUIRES-JUDGMENT:** AC0.3, and it is a genuine go/no-go on the initiative — not a checkpoint.
+
 ### P1 — Deterministic core & replay harness
 > Layers: 1 (partial) · delivers journey step 5
 
