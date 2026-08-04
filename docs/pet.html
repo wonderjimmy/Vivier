@@ -1,0 +1,815 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vivier (spike)</title><style>
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:#0b0d10;color:#e6e8ec;display:flex;align-items:center;
+ justify-content:center;font:14px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif}
+.frame{width:340px;background:#14161a;border:1px solid #262a31;border-radius:16px;padding:20px}
+.screen{background:#0d0f12;border:1px solid #262a31;border-radius:10px;padding:16px 8px 10px;
+ text-align:center;position:relative}
+img{image-rendering:pixelated;display:block;margin:0 auto}
+.cond{margin-top:10px;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:#9aa2ad}
+.age{font-size:12px;color:#5b626d;margin-top:2px}
+.bars{margin-top:14px}
+.bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:11px}
+.bar span{width:74px;color:#9aa2ad;text-align:right}
+.bar div{flex:1;height:7px;background:#1b1f26;border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px;transition:width .3s}
+.btns{display:flex;gap:8px;margin-top:16px}
+button{flex:1;background:#1b1f26;color:#e6e8ec;border:1px solid #2d323b;border-radius:9px;
+ padding:11px 0;font:inherit;font-size:13px;cursor:pointer}
+button:active{background:#2a5f47;border-color:#3d8a68}
+.away{position:absolute;inset:0;background:rgba(11,13,16,.94);border-radius:10px;display:none;
+ flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.away b{font-size:15px;display:block;margin-bottom:6px}
+.away p{color:#9aa2ad;font-size:12.5px;margin:0 0 14px}
+.foot{margin-top:14px;font-size:11px;color:#4d545e;line-height:1.5}
+.foot b{color:#f0b86e;font-weight:600}
+</style></head><body>
+<div class="frame">
+  <div class="screen">
+    <img id="pet" width="192" height="192" alt="">
+    <div class="cond" id="cond">—</div>
+    <div class="age" id="age"></div>
+    <div class="away" id="away">
+      <b id="awayTitle"></b><p id="awayBody"></p>
+      <button id="awayOk" style="flex:0 0 auto;padding:9px 22px">See how it is</button>
+    </div>
+  </div>
+  <div class="bars" id="bars"></div>
+  <div class="btns">
+    <button id="feed">Feed</button><button id="play">Play</button><button id="clean">Clean</button>
+  </div>
+  <div class="foot"><b>Spike.</b> Real core, real wall clock, disposable save.
+  No clock-anomaly handling, no save validation, no write budget — those are P2's job.
+  Don't start the 30-day run here; P2 will change the format and this pet won't survive it.</div>
+</div>
+<script type="module">
+// Core domain types. No behaviour, no constants.
+
+                            
+
+/**
+ * The complete simulation state. AC1a.3: anything that survives across an `advance` call is a
+ * field here. In particular `rem` — the sub-unit remainder carried per stat — is state, not a
+ * hidden accumulator, because otherwise a save/restore round-trip would silently lose it and
+ * two identically-treated pets would drift apart.
+ */
+                        
+                                 
+                                                                                                
+                       
+                                                    
+                         
+                                                                                           
+                                                   
+                                                                              
+                                                 
+ 
+
+                                   
+
+                       
+                        
+                      
+                         
+ 
+
+                       
+                      
+                        
+                                               
+                               
+                             
+ 
+
+                           
+                       
+                       
+                           
+ 
+
+                                    
+                        
+                         
+ 
+
+                         
+                                 
+                                                                                
+                               
+                               
+                                                     
+                                  
+                                                                                
+ 
+
+/** A validated config plus the bounds derived from it at load time. */
+                               
+                          
+                                                                                        
+                                
+ 
+
+                        
+                        
+                        
+ 
+
+class ConfigError extends Error {
+           key        ;
+  constructor(key        , message        ) {
+    super(`${key}: ${message}`);
+    this.name = 'ConfigError';
+    this.key = key;
+  }
+}
+
+class AdvanceError extends Error {
+  constructor(message        ) {
+    super(message);
+    this.name = 'AdvanceError';
+  }
+}
+
+class ReplayError extends Error {
+  constructor(message        ) {
+    super(message);
+    this.name = 'ReplayError';
+  }
+}
+
+// THE single division site in core/ (AC1a.4).
+//
+// Every other module in core/ is forbidden from using `/`, Math.round/floor/ceil/trunc,
+// `| 0`, `>>> 0`, parseInt or toFixed. One definition, any number of call sites.
+
+/**
+ * Floored division with a non-negative remainder, exact on its stated domain.
+ *
+ * Returns `{ q, r }` with `n === q * d + r` and `0 <= r < d`, for integer `n` and positive
+ * integer `d` satisfying `|n| + d <= Number.MAX_SAFE_INTEGER`. Outside that domain it throws.
+ *
+ * An earlier version instead "corrected" the result when `n - q * d` fell outside `[0, d)`.
+ * That was worse than useless, and the mutation gate is what exposed it: no test could kill the
+ * correction branches, because a search over the whole safe-integer range found they NEVER fire
+ * inside the domain — while outside it they produce silently wrong answers. `q * d` can exceed
+ * 2^53 even when `n` does not, so the correction's own arithmetic is inexact exactly where it
+ * claims to be repairing inexactness. Failing loudly beats being confidently wrong
+ * (constitution: show real errors, never fake success).
+ *
+ * `advance` can never reach the guard: `loadConfig` derives `maxAdvanceMs` so that every
+ * intermediate stays inside this domain, and that relationship is asserted by test.
+ */
+function divmod(n        , d        )                           {
+  const magnitude = n < 0 ? -n : n;
+  if (magnitude + d > Number.MAX_SAFE_INTEGER) {
+    throw new RangeError(`divmod(${n}, ${d}): outside the exact-integer domain`);
+  }
+  const q = Math.floor(n / d);
+  return { q, r: n - q * d };
+}
+
+// Rule gating and composition.
+//
+// DECLARED COMPOSITION SEMANTICS (AC1a.2b — written down before being tested, not inferred
+// from the implementation):
+//
+//   1. A rule contributes to its stat only while its gate is open. A rule with `gate: null`
+//      is always open.
+//   2. Gates are evaluated ONCE per sub-interval, on the state at the START of that
+//      sub-interval. They do not re-evaluate mid-interval; `advance` instead ends the
+//      sub-interval at the exact millisecond a gate would change.
+//   3. Every open rule targeting a stat contributes ADDITIVELY. The stat's net rate for the
+//      sub-interval is the plain sum.
+//   4. Clamping is applied EXACTLY ONCE per stat per sub-interval, after summing — never per
+//      rule. Clamping per rule would make the result depend on rule order near a bound.
+//   5. Consequently rule order is irrelevant. That is an invariant, asserted by test — not a
+//      hope. It is also why "swap rule order" is a deliberately equivalent mutant in the
+//      mutation gate, justified in the worklog rather than expected to die.
+
+                                                        
+
+function isGateOpen(rule      , stats                                  )          {
+  if (rule.gate === null) return true;
+  const value = stats[rule.gate.stat];
+  return rule.gate.op === 'gte' ? value >= rule.gate.value : value <= rule.gate.value;
+}
+
+/** Net rate per stat for a sub-interval, given the state at its start. Rule 3 above. */
+function netRates(
+  config        ,
+  stats                                  ,
+)                         {
+  const rates                         = {};
+  for (const id of Object.keys(config.stats)) rates[id] = 0;
+  for (const rule of config.rules) {
+    if (isGateOpen(rule, stats)) rates[rule.stat] += rule.ratePerHour;
+  }
+  return rates;
+}
+
+/**
+ * The categorical shape of the state: which gates are open.
+ *
+ * `advance` segments time wherever this changes, because that is where the rate set changes.
+ *
+ * It deliberately does NOT track stats sitting on a bound. The second CRITIQUE round argued a
+ * clamp-saturation boundary breaks step-size composition just as a threshold does; building it
+ * proved otherwise, and the mutation gate is what showed it — flipping the bound comparisons
+ * changed no observable behaviour at all. Two reasons it cannot:
+ *
+ *   * remainder accumulation is clamp-independent, so `rem` after an interval is a pure
+ *     function of total elapsed time regardless of where the interval was cut; and
+ *   * clamping is idempotent, so a stat that saturates mid-interval lands on the same bound
+ *     whether or not the interval was split there.
+ *
+ * Any boundary that DOES change behaviour is a gate, and gates are tracked. Keeping a second,
+ * redundant notion of boundary would be filler that the gate could not kill — code no test can
+ * distinguish from its own absence.
+ */
+function signature(config        , stats                                  )         {
+  const parts           = [];
+  for (const rule of config.rules) parts.push(isGateOpen(rule, stats) ? 'o' : '.');
+  return parts.join('');
+}
+
+// Time integration with exact discrete-event segmentation.
+//
+// The whole design follows from AC1a.1: folding `advance` over any partition of Δ must give a
+// value-identical state to one call over Δ. Two consequences, both load-bearing:
+//
+//   * No per-step rounding. Rates are integers in the stat's own unit scale and every division
+//     carries its remainder back into STATE (not into a module-level accumulator — see AC1a.3),
+//     so splitting an interval never loses a fraction.
+//   * No evaluating a whole Δ in one shot when the rate set can change inside it. `advance`
+//     ends each sub-interval at the exact millisecond the state's categorical shape changes —
+//     a gate flipping OR a stat reaching a bound.
+//
+// The boundary is found by binary search rather than a closed-form solve. That is deliberate:
+// the search is correct by monotonicity (with rates held constant, each stat moves monotonically,
+// so each gate flips at most once and each bound is reached at most once), whereas a hand-derived
+// closed form is exactly the kind of algebra that hides an off-by-one. The reference module used
+// to build the corpus derives its crossing times independently, so if either is wrong they
+// disagree and the build fails.
+
+
+
+const HALF = 2;
+
+function integrate(
+  config        ,
+  s       ,
+  dt        ,
+  rates                                  ,
+)        {
+  const stats                         = {};
+  const rem                         = {};
+  for (const id of Object.keys(config.stats)) {
+    const spec = config.stats[id];
+    const { q, r } = divmod(rates[id] * dt + s.rem[id], config.denominator);
+    let v = s.stats[id] + q;
+    if (v < spec.min) v = spec.min;
+    else if (v > spec.max) v = spec.max;
+    stats[id] = v;
+    rem[id] = r;
+  }
+  return {
+    schemaVersion: s.schemaVersion,
+    tMs: s.tMs + dt,
+    ageMs: s.ageMs + dt,
+    stats,
+    rem,
+  };
+}
+
+/**
+ * Smallest `dt` in `[1, maxDt]` at which the state's categorical signature differs from now.
+ * Returns `maxDt` when nothing changes within the interval.
+ */
+function firstChange(
+  config        ,
+  s       ,
+  rates                                  ,
+  maxDt        ,
+)         {
+  const here = signature(config, s.stats);
+  if (signature(config, integrate(config, s, maxDt, rates).stats) === here) return maxDt;
+  let lo = 1;
+  let hi = maxDt;
+  while (lo < hi) {
+    const mid = divmod(lo + hi, HALF).q;
+    if (signature(config, integrate(config, s, mid, rates).stats) === here) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/**
+ * Advance the pet by `elapsedMs` of real time.
+ *
+ * The core never asks what time it is — the platform tells it how much time has passed
+ * (constitution law 2). `elapsedMs` of 0 returns a value-identical state; a negative value
+ * throws rather than ageing the pet backwards.
+ */
+function advance(loaded              , s       , elapsedMs        )        {
+  if (!Number.isInteger(elapsedMs)) {
+    throw new AdvanceError(`elapsedMs must be an integer, got ${elapsedMs}`);
+  }
+  if (elapsedMs < 0) {
+    throw new AdvanceError(`elapsedMs must not be negative, got ${elapsedMs}`);
+  }
+  if (elapsedMs > loaded.maxAdvanceMs) {
+    throw new AdvanceError(
+      `elapsedMs ${elapsedMs} exceeds maxAdvanceMs ${loaded.maxAdvanceMs}; ` +
+        'advancing further would leave the safe-integer range',
+    );
+  }
+  const config = loaded.config;
+  let state = s;
+  let remaining = elapsedMs;
+  let segments = 0;
+  while (remaining > 0) {
+    if (++segments > config.maxSegments) {
+      throw new AdvanceError(
+        `exceeded maxSegments (${config.maxSegments}); the tuning config oscillates a gate`,
+      );
+    }
+    const rates = netRates(config, state.stats);
+    const dt = firstChange(config, state, rates, remaining);
+    state = integrate(config, state, dt, rates);
+    remaining -= dt;
+  }
+  return state;
+}
+
+// Interaction events. Instantaneous: an event changes stats, never time.
+
+/** The initial state for a newborn pet, taken entirely from the config. */
+function initialState(loaded              , startedAtMs        )        {
+  if (!Number.isInteger(startedAtMs)) {
+    throw new ReplayError(`startedAtMs must be an integer, got ${startedAtMs}`);
+  }
+  const stats                         = {};
+  const rem                         = {};
+  for (const id of Object.keys(loaded.config.stats)) {
+    stats[id] = loaded.config.stats[id].initial;
+    rem[id] = 0;
+  }
+  return { schemaVersion: loaded.config.schemaVersion, tMs: startedAtMs, ageMs: 0, stats, rem };
+}
+
+/**
+ * Apply one interaction. Effects are summed first and clamped once per stat, matching the
+ * composition rule used during integration — so an interaction near a bound behaves the same
+ * way a rule does, rather than depending on the order its effects happen to be listed in.
+ */
+function apply(loaded              , s       , kind        )        {
+  const effects = loaded.config.interactions[kind];
+  if (effects === undefined) {
+    throw new ReplayError(`unknown interaction "${kind}"`);
+  }
+  const deltas                         = {};
+  for (const effect of effects) {
+    deltas[effect.stat] = (deltas[effect.stat] ?? 0) + effect.delta;
+  }
+  const stats                         = {};
+  for (const id of Object.keys(loaded.config.stats)) {
+    const spec = loaded.config.stats[id];
+    let v = s.stats[id] + (deltas[id] ?? 0);
+    if (v < spec.min) v = spec.min;
+    else if (v > spec.max) v = spec.max;
+    stats[id] = v;
+  }
+  return { schemaVersion: s.schemaVersion, tMs: s.tMs, ageMs: s.ageMs, stats, rem: { ...s.rem } };
+}
+
+function interactionKinds(config        )           {
+  return Object.keys(config.interactions);
+}
+
+// Deterministic replay of a timestamped event list.
+//
+// DECLARED ORDERING AND INTERVAL CONVENTIONS (AC1a.8 — written down before being tested, so
+// that "deterministic" cannot be confused with "defined"):
+//
+//   1. Events are sorted by `atMs` with a STABLE sort. Two events at an identical timestamp
+//      keep their input order. Sorting is a normalisation, not an error: an out-of-order list
+//      from a UI that batches input is a real case, and silently dropping or rejecting it would
+//      lose the owner's care rather than record it.
+//   2. An event with `atMs` before `initial.tMs` is a ReplayError. The past is not editable —
+//      accepting it would let a caller rewrite history the pet has already lived.
+//   3. An event at exactly `initial.tMs` is applied before any time advances.
+//   4. An event at exactly `untilMs` IS applied — the interval is closed at its end for events.
+//   5. An event coincident with an internal gate crossing or clamp saturation: time advances to
+//      the event's timestamp first (completing that segment), then the event applies. Events
+//      never take effect inside a sub-interval.
+
+
+
+function replay(
+  loaded              ,
+  initial       ,
+  events                  ,
+  untilMs        ,
+)        {
+  if (!Number.isInteger(untilMs)) {
+    throw new ReplayError(`untilMs must be an integer, got ${untilMs}`);
+  }
+  if (untilMs < initial.tMs) {
+    throw new ReplayError(`untilMs ${untilMs} is before the initial state's time ${initial.tMs}`);
+  }
+  for (const event of events) {
+    if (!Number.isInteger(event.atMs)) {
+      throw new ReplayError(`event atMs must be an integer, got ${event.atMs}`);
+    }
+    if (event.atMs < initial.tMs) {
+      throw new ReplayError(
+        `event at ${event.atMs} predates the initial state's time ${initial.tMs}`,
+      );
+    }
+  }
+  // Convention 1: stable sort. Array.prototype.sort is required to be stable by the language
+  // spec, so equal timestamps keep input order without a decorating index.
+  const ordered = [...events].sort((a, b) => a.atMs - b.atMs);
+
+  let state = initial;
+  for (const event of ordered) {
+    if (event.atMs > untilMs) break;
+    state = advance(loaded, state, event.atMs - state.tMs);
+    state = apply(loaded, state, event.kind);
+  }
+  return advance(loaded, state, untilMs - state.tMs);
+}
+
+// AC1a.14 — the single validating door.
+//
+// Every consumer of tuning data (the corpus generator, the reference module, the harness, and
+// every later phase's loader) obtains its config through `loadConfig`. A validator that lives
+// only in the harness leaves the core accepting anything, so the door is here, in core/.
+//
+// P1a validates what P1a's own criteria depend on: structural integrity, integer-only values
+// (ADR-002), and the safe-arithmetic bound. P1b extends the invalid-case table (AC1b.5) — it
+// does not add a second door.
+
+
+function requireInteger(value         , key        )         {
+  if (typeof value !== 'number' || !Number.isInteger(value)) {
+    throw new ConfigError(key, `must be an integer, got ${JSON.stringify(value)}`);
+  }
+  return value;
+}
+
+function requirePositive(value        , key        )         {
+  if (value <= 0) throw new ConfigError(key, `must be positive, got ${value}`);
+  return value;
+}
+
+/**
+ * Validate a raw config object and derive its load-time bounds.
+ * Throws `ConfigError` naming the offending key. Never defaults, never clamps, never repairs.
+ */
+function loadConfig(raw         )               {
+  if (raw === null || typeof raw !== 'object') {
+    throw new ConfigError('<root>', 'config must be an object');
+  }
+  const c = raw                           ;
+
+  const schemaVersion = requireInteger(c.schemaVersion, 'schemaVersion');
+  if (schemaVersion !== SUPPORTED_SCHEMA_VERSION) {
+    throw new ConfigError('schemaVersion', `unsupported version ${schemaVersion}`);
+  }
+  const denominator = requirePositive(requireInteger(c.denominator, 'denominator'), 'denominator');
+  const maxSegments = requirePositive(requireInteger(c.maxSegments, 'maxSegments'), 'maxSegments');
+
+  if (c.stats === null || typeof c.stats !== 'object') {
+    throw new ConfigError('stats', 'must be an object');
+  }
+  const statsRaw = c.stats                                           ;
+  const statIds = Object.keys(statsRaw);
+  if (statIds.length === 0) throw new ConfigError('stats', 'must declare at least one stat');
+
+  const stats                                                                = {};
+  for (const id of statIds) {
+    const spec = statsRaw[id];
+    const min = requireInteger(spec?.min, `stats.${id}.min`);
+    const max = requireInteger(spec?.max, `stats.${id}.max`);
+    const initial = requireInteger(spec?.initial, `stats.${id}.initial`);
+    if (min >= max) throw new ConfigError(`stats.${id}`, `min (${min}) must be below max (${max})`);
+    if (initial < min || initial > max) {
+      throw new ConfigError(`stats.${id}.initial`, `${initial} outside [${min}, ${max}]`);
+    }
+    stats[id] = { min, max, initial };
+  }
+
+  if (!Array.isArray(c.rules)) throw new ConfigError('rules', 'must be an array');
+  const seenRuleIds = new Set        ();
+  const rules         = [];
+  (c.rules                             ).forEach((r, i) => {
+    const at = `rules[${i}]`;
+    const id = r?.id;
+    if (typeof id !== 'string' || id.length === 0) {
+      throw new ConfigError(`${at}.id`, 'must be a non-empty string');
+    }
+    if (seenRuleIds.has(id)) throw new ConfigError(`${at}.id`, `duplicate rule id "${id}"`);
+    seenRuleIds.add(id);
+
+    const stat = r.stat;
+    if (typeof stat !== 'string' || !(stat in stats)) {
+      throw new ConfigError(`${at}.stat`, `unknown stat ${JSON.stringify(stat)}`);
+    }
+    const ratePerHour = requireInteger(r.ratePerHour, `${at}.ratePerHour`);
+
+    let gate               = null;
+    if (r.gate !== null && r.gate !== undefined) {
+      const g = r.gate                           ;
+      const gStat = g.stat;
+      if (typeof gStat !== 'string' || !(gStat in stats)) {
+        throw new ConfigError(`${at}.gate.stat`, `unknown stat ${JSON.stringify(gStat)}`);
+      }
+      if (g.op !== 'gte' && g.op !== 'lte') {
+        throw new ConfigError(`${at}.gate.op`, `must be "gte" or "lte", got ${JSON.stringify(g.op)}`);
+      }
+      const value = requireInteger(g.value, `${at}.gate.value`);
+      const spec = stats[gStat];
+      if (value < spec.min || value > spec.max) {
+        throw new ConfigError(`${at}.gate.value`, `${value} outside [${spec.min}, ${spec.max}]`);
+      }
+      gate = { stat: gStat, op: g.op, value };
+    }
+    rules.push({ id, stat, ratePerHour, gate });
+  });
+
+  if (c.interactions === null || typeof c.interactions !== 'object') {
+    throw new ConfigError('interactions', 'must be an object');
+  }
+  const interactionsRaw = c.interactions                           ;
+  const interactions                                                    = {};
+  for (const kind of Object.keys(interactionsRaw)) {
+    const effects = interactionsRaw[kind];
+    if (!Array.isArray(effects) || effects.length === 0) {
+      throw new ConfigError(`interactions.${kind}`, 'must be a non-empty array of effects');
+    }
+    interactions[kind] = (effects                             ).map((e, i) => {
+      const at = `interactions.${kind}[${i}]`;
+      const stat = e?.stat;
+      if (typeof stat !== 'string' || !(stat in stats)) {
+        throw new ConfigError(`${at}.stat`, `unknown stat ${JSON.stringify(stat)}`);
+      }
+      return { stat, delta: requireInteger(e.delta, `${at}.delta`) };
+    });
+  }
+
+  const config         = {
+    schemaVersion, denominator, maxSegments, stats, rules, interactions,
+  };
+  return { config, maxAdvanceMs: deriveMaxAdvanceMs(config) };
+}
+
+const SUPPORTED_SCHEMA_VERSION = 1;
+
+/**
+ * AC1a.6 — the bound uses the SUM of every rate that can act on one stat simultaneously, not the
+ * largest single rate. With several rules live on one stat the true intermediate is the sum, and
+ * a bound derived from the maximum would understate it.
+ */
+function deriveMaxAdvanceMs(config        )         {
+  const perStat = new Map                ();
+  for (const rule of config.rules) {
+    const magnitude = rule.ratePerHour < 0 ? -rule.ratePerHour : rule.ratePerHour;
+    perStat.set(rule.stat, (perStat.get(rule.stat) ?? 0) + magnitude);
+  }
+  let worst = 0;
+  for (const sum of perStat.values()) if (sum > worst) worst = sum;
+  if (worst === 0) return Number.MAX_SAFE_INTEGER;
+  // Two denominators of headroom, not one: the intermediate is `rate * dt + rem` (one DEN of
+  // slack for the remainder) and `divmod` additionally requires `|n| + d` to stay representable.
+  const headroom = Number.MAX_SAFE_INTEGER - 2 * config.denominator;
+  return divmod(headroom, worst).q;
+}
+
+
+const SPRITES = {"content":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAA/0lEQVR42u2ZzQ2DMAxGsw/Hbsc0HDtCx+ihg1RdoFU5Vo1Mfkzs+D3JR4i/J8ABUgIAAGhmWS7vb82yDgJKG1of215aDZ61DgJqG3pt1716N3jWOgjo1Viuwdo6en4EjBYwqhBgdRxOHxgBmeC35/1vhbn0wwgYFdzsFAgjQAo+/ThEgDDuJKQgtccjwJqA35eaUgGlxyMAAQhAAAIYgwgYLyD8Vti9gNzn6d4Ccp+5ewmQciCgVoT1W6A5OAKUH4JaYt1MAfcC+DWGABsicsHVH4IIcPJzdNorwawAbRHmgyOgckvduoU1Fzi8AK1AvYQhwLuAZJ3wAgAAAMANH4LJy6l1dfyrAAAAAElFTkSuQmCC","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAA+0lEQVR42u2ZwQ3DIAxFs0+O3a7T5NgROkYPHSTKAq2aY1RkcDA45j3JR4L/EwmITBMAAADASeb59vlVlHkQUNrQ/b3sZdVgq3kQoG1oWx571W6w1TwIqNVYqkFt5T4fAb0F9CoEeN0OwwdGQCL4c339rWGW/jACegV3uwsMI0D62ElIgbTjm4lAQKaA45G2VEDpeAQgAAEIQADbIAL6Cwh/MRJeQOpysraA1CVnLQFSDgRoRXh/BU4HR4DxR9BK7GV2gcsL8P5jxPwVQIATEVKw8CvBjQBvv8aaB0dAIxHugyNAeaTWHmHdBUVAZmDr8QhAAAIAAAAAsvgCx+XcIqaTiMIAAAAASUVORK5CYII="],"hungry":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABJ0lEQVR42u3awQ3CMAyF4e7TI9sxTY+MwBgcGASxAIhKvUREdloncer/ST5wSBt/hyZKmCZCCCHkcOb58vnVWd4DQOmErs9lrVoTlN6z/S4tAKwm9F5ua1lDaN+zlTYA1AKQJlha2uen86rWOAAZgF6VayiFMP84hwfoBaJtpNq6D4DQ+P31+Fu9IJpvhcMA9GrcDURYAKlxb8shAK2XO+3W1no8AF4A0q1nuiWVAPaOBwAAAAAAwBNALlqA0vEAeAEIvxUeHkA6SrICyB1zWwHsPhILD6C9bLSacK3nHT4MDQ9Q6yOYG2/1XPerwPAAo1yNAXB2COlS9HR3gm4BuB0GoA2E+8YB2LmlPrqFdddweIBaDTX77y8AzgEm7wkPQAghhJBh8gXQAm6olJFIvAAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABJUlEQVR42u2ZwQ3CMAwAu0+fbMc0fTICY/BgEMQCICr6ibDspE5imjvJD5CS2AdqLWeaAAAAAHYyz6fXJ3qds32fGwjwSuh8X9aoJUI7Z/tsBQF780wTei6XNbxF5J6jiaj2yyPgm5iUYGlY95fycy8cAYKAXpH7WkRA7QalV8FhWuHhBKSFXx+3n3FYEcMK6FV4GBHDCtAedtbGxnt9MxEIUBJJW8+0JdUElK5HAAIQgAAERBIgYRWQux4BUQREG4wgoLRAaZTkJUAacnoJKB6JDS/AetnolXCt/XYPQ4cXUOshKK332jf8W+DvBUS/GGl2ITK8gN4itMIO/08IIyDa1VjzwhHQSET4whFQ2FKXtrDhCkWAseDa6xGAAAQAAAAAmHgDFS1/IXvVD0UAAAAASUVORK5CYII="],"dirty":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABPUlEQVR42u2ZwQ3CMAxFu0+P3FiJDRiBKXpkBMbgwCCIBaioxKUiOHHsOLH/l/6xjf9rGjfpNEEQBEFQteb58P7YyzgAUFrQ+bFs1iqw1TgAwC3otVw3SxfYahwAkCosVSDXufcHAGsAVgaAXtuhVWD3M6I7APvgt+f9p8NM/TAArIJzQYgDCwuACu6+HQIA0e4oUUG41wOANYDL6fjXpQD2myIAGOUVAIDoALgBAMAbAKk2SC2uANAbACnnBgcAaQCp4+kUAKrQVMGpY26pzRCVAwC4IEo/hVtvh6uDA4DyIlgKdrgDEfcAtNth6aLq7k/QMACsQFDB1RdBAOj856i7mWAGgPthoQWi+ZMPC+B7AdWGagvKdfN3PSyA3OAUCK1AUsAAQCp4CoQ2ALX+HR6AlKfRFB4ABEEQFFgrY/qYRO4tD54AAAAASUVORK5CYII=","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABP0lEQVR42u2azQ3CMAxGuw9HbqzEBozAFD0yAmNwYBDEAiAqcakI+XMcN36f5GMTf6+Nk7qdJoQQQgihSu12+9cnRpkHALkJne7zEq0S1JoHAKUJPefLEtIJas0DAKnEQgmWRur4AOgNoFesAagBcQ+gFxDzJ0F3ANbGr4/bz+gNohk4twB6GTezJNwCiBW7mGKGSq83s/+7BXA+Hv5GLoD1kRgAW1kCAPAOoNQAAEYDILUNxoorAKwBkIpU4wCQBhBqToYAxBINJRxqckq3xkI+AFAKIvcorN0crTYOgMZFMBesucaIewCtt8Pcoipe/ABgHETqIz/sk2AOgLVPY+rGhwVQerBoBUL9zrsF8L0wtg2lTlD7i0zquOJr2R2AVOMxELUvJWovNQCoNB4CAYCtApCKaWtyDwAhhJBjvQGpFqi9LyHXFwAAAABJRU5ErkJggg=="],"sick":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABIUlEQVR42u2awQ2DMAxF2Ydjt+s0HDtCx+ihg1RdoFWRckFFGIjND35f8gUEtp8SYuJ0HUIIIbRbfX/5/OxoP+V+VDwAKI6uz2E0L8dWPwCIAjAN6D3cRqsNwurHagDwBrA3wKlZ3y8zBdICOMoAEAXAWoBEJyxT6Z0WQHFYNDfkSoD31+OvNQsCAMZlKirxcBDpASx97KITlpkSAFgIxHq91vMAUAEw9xO0dUiv9QcAAAAAAABgGQTA8VMgbSncPIClhkItAHPb3F6bo2ZA6QGs3QhRmwLVWmLpAXh9BL3ANrMKNA9AvTUGgCwgrEdkTtsllgGg2hw97UiQBeANQj5xAGwsqfeWsHIJpwfglVD4QUgAiALo1JUeAEIIIYSa0Re9mqzJfsmVkAAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABIUlEQVR42u2azQ3CMAxGu0+PbMc0PTICY3BgEMQCIFWKhBBWEtM4Tvw+yaeq/ZynJs7fsiCEEELTaF1Pr88AgLVxbx8AWANIRuf7tkcrY8mnNgDQKqHndtnjaBC1PmZdAABCYlKC2ij9PgBaA5CMUiK9wrzchQOQDJIkQysg3WZ44QFIg8t3w6+P288Yvu+HBVBaBq0a7gZEWAC5wU56XjpIat/vtvwFQCYhbXmsfR8AAAAAAABAGQSAny4w/c7QtABql7/akDY5jwKgPhgJDyD3Ae9d4LAjsfAAWg2CrcAOUwWGB+D9YKTbvYBwAHqDqL0qM92f4AaAt6Mx84YDwAiE+4YDQDml1k5hh7kTHA7Av4sS85ueAAAAABBCCCEUU29U2cNic8iCMAAAAABJRU5ErkJggg=="],"sleeping":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABGElEQVR42u2awQ2DMAxF2Ydjt+s0HDtCx+ihg1RdgEpIvSAQVnBih/++5CNgP9lJsDMMCHWlcbzNWwYA1UyQLwU5h9KWgCyAvwP397RYLYdafQcApQ59p8di3g5av2M1ANQGcNbBtVnff7RYNisBWQBRFrYtygOIAmJN+eZgZAGsA39+XpvWCkR46ssAiAo8DQhZAEeBR2+HAFA5AAEAAADICcD6e+v9PAAoAQAAAAAAAMDsFuBeK8kLwF6b2wtAcUtMHoC1yZi1BNyaofIAai2CtcB2swt0DyDraOyyo7Du5gPRgV92JpgWQJbhqEwmpAVQG0T6wAFQeKQ+e4RNf31eDkCtgMLvAAEgCYAhu+QBIIQQQqgb/QCtyeXphLauSQAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABGElEQVR42u3awRGCMBCFYfrhaHdWw9ESLMODhTg2gDOMXhgiuG6STd6/M3tUNh9JgCTDQBBNxTie5q0EQLUnyA8F5gDmgCAApQoJe8dlAT4Fne/TkrkK3LtOamhkHyqyAOuCntNlSW8I63WK33kA3oWlCrSm9f+LT37yALXyV1AAWu8R4d8E5QDWDb8+bpvZLYQsQK2Gh4GQBYjy+KsGAQAAAHwFOPpx4/17ABgCAAAAAAAAzG4NTC0leQGkFjm9AMxLYvIAR7eaog4Bt8VQeYBck2Au2GaeAs0DRN0YKX6ERh6gNsRew7rvCWEAom2Ndb9dHhYgN0T4hgNgfKW2vsI2c1ZYDuDfj5JqR1wAAAAAgiAIgiC04gVA//yCYk6S1AAAAABJRU5ErkJggg=="],"dead":["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABIUlEQVR42u2awQ2DMAxF2Ydjt+s0HDtCx+ihg1RdoFWRckFFGIjND35f8gUEtp8SYuJ0HUIIIbRbfX/5/OxoP+V+VDwAKI6uz2E0L8dWPwCIAjAN6D3cRqsNwurHagDwBrA3wKlZ3y8zBdICOMoAEAXAWoBEJyxT6Z0WQHFYNDfkSoD31+OvNQsCAMZlKirxcBDpASx97KITlpkSAFgIxHq91vMAUAEw9xO0dUiv9QcAAAAAAABgGQTA8VMgbSncPIClhkItAHPb3F6bo2ZA6QGs3QhRmwLVWmLpAXh9BL3ANrMKNA9AvTUGgCwgrEdkTtsllgGg2hw97UiQBeANQj5xAGwsqfeWsHIJpwfglVD4QUgAiALo1JUeAEIIIYSa0Re9mqzJfsmVkAAAAABJRU5ErkJggg==","data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABIUlEQVR42u2azQ3CMAxGu0+PbMc0PTICY3BgEMQCIFWKhBBWEtM4Tvw+yaeq/ZynJs7fsiCEEELTaF1Pr88AgLVxbx8AWANIRuf7tkcrY8mnNgDQKqHndtnjaBC1PmZdAABCYlKC2ij9PgBaA5CMUiK9wrzchQOQDJIkQysg3WZ44QFIg8t3w6+P288Yvu+HBVBaBq0a7gZEWAC5wU56XjpIat/vtvwFQCYhbXmsfR8AAAAAAABAGQSAny4w/c7QtABql7/akDY5jwKgPhgJDyD3Ae9d4LAjsfAAWg2CrcAOUwWGB+D9YKTbvYBwAHqDqL0qM92f4AaAt6Mx84YDwAiE+4YDQDml1k5hh7kTHA7Av4sS85ueAAAAABBCCCEUU29U2cNic8iCMAAAAABJRU5ErkJggg=="]};
+const KEY = 'vivier.spike.v1';
+const COLOURS = { hunger:'#f0a35e', happiness:'#7ad4a0', cleanliness:'#7ab8f0',
+                  health:'#f07a8a', weight:'#c9a0f0' };
+
+const loaded = loadConfig({
+  "schemaVersion": 1,
+  "denominator": 3600000,
+  "maxSegments": 4096,
+  "stats": {
+    "hunger": {
+      "min": 0,
+      "max": 100000,
+      "initial": 20000
+    },
+    "happiness": {
+      "min": 0,
+      "max": 100000,
+      "initial": 70000
+    },
+    "cleanliness": {
+      "min": 0,
+      "max": 100000,
+      "initial": 90000
+    },
+    "health": {
+      "min": 0,
+      "max": 100000,
+      "initial": 100000
+    },
+    "weight": {
+      "min": 5000,
+      "max": 60000,
+      "initial": 20000
+    }
+  },
+  "rules": [
+    {
+      "id": "hungerRise",
+      "stat": "hunger",
+      "ratePerHour": 1600,
+      "gate": null
+    },
+    {
+      "id": "moodFall",
+      "stat": "happiness",
+      "ratePerHour": -1200,
+      "gate": null
+    },
+    {
+      "id": "grimeBuild",
+      "stat": "cleanliness",
+      "ratePerHour": -1000,
+      "gate": null
+    },
+    {
+      "id": "weightDrift",
+      "stat": "weight",
+      "ratePerHour": -60,
+      "gate": null
+    },
+    {
+      "id": "starveDamage",
+      "stat": "health",
+      "ratePerHour": -700,
+      "gate": {
+        "stat": "hunger",
+        "op": "gte",
+        "value": 85000
+      }
+    },
+    {
+      "id": "filthDamage",
+      "stat": "health",
+      "ratePerHour": -500,
+      "gate": {
+        "stat": "cleanliness",
+        "op": "lte",
+        "value": 15000
+      }
+    },
+    {
+      "id": "obesityDamage",
+      "stat": "health",
+      "ratePerHour": -900,
+      "gate": {
+        "stat": "weight",
+        "op": "gte",
+        "value": 45000
+      }
+    },
+    {
+      "id": "healthRecover",
+      "stat": "health",
+      "ratePerHour": 700,
+      "gate": {
+        "stat": "hunger",
+        "op": "lte",
+        "value": 65000
+      }
+    }
+  ],
+  "interactions": {
+    "feed": [
+      {
+        "stat": "hunger",
+        "delta": -40000
+      },
+      {
+        "stat": "weight",
+        "delta": 1500
+      }
+    ],
+    "play": [
+      {
+        "stat": "happiness",
+        "delta": 25000
+      },
+      {
+        "stat": "weight",
+        "delta": -500
+      },
+      {
+        "stat": "hunger",
+        "delta": 3000
+      }
+    ],
+    "clean": [
+      {
+        "stat": "cleanliness",
+        "delta": 45000
+      }
+    ]
+  }
+});
+const cfg = loaded.config;
+const ids = Object.keys(cfg.stats);
+const pct = (id, v) => (v - cfg.stats[id].min) / (cfg.stats[id].max - cfg.stats[id].min);
+
+function condition(s) {
+  if (pct('health', s.stats.health) <= 0) return 'dead';
+  if (pct('health', s.stats.health) < 0.4) return 'sick';
+  if (pct('hunger', s.stats.hunger) > 0.7) return 'hungry';
+  if (pct('cleanliness', s.stats.cleanliness) < 0.3) return 'dirty';
+  return 'content';
+}
+
+// --- load, and resolve the gap since we were last here -------------------------------------
+let state, awayMs = 0;
+try {
+  const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+  if (saved && saved.state) {
+    state = saved.state;
+    // SPIKE-LEVEL clock handling: a backwards clock is clamped to zero and forgotten.
+    // P2 must instead persist a clockAnomaly flag and surface it — a restart currently
+    // launders an untrustworthy clock into a trustworthy one, which is exactly the gap
+    // the scope calls out. Left visibly wrong rather than half-solved.
+    awayMs = Math.max(0, Date.now() - saved.at);
+    state = advance(loaded, state, awayMs);
+  }
+} catch (e) { state = undefined; }
+if (!state) { state = initialState(loaded, Date.now()); awayMs = 0; }
+
+const save = () => localStorage.setItem(KEY, JSON.stringify({ state, at: Date.now() }));
+let lastTick = Date.now();
+
+document.getElementById('bars').innerHTML = ids.map((id) =>
+  '<div class="bar"><span>' + id + '</span><div><i id="b_' + id +
+  '" style="background:' + COLOURS[id] + '"></i></div></div>').join('');
+
+let frame = 0;
+function render() {
+  const c = condition(state);
+  document.getElementById('pet').src = SPRITES[c][frame];
+  document.getElementById('cond').textContent = c;
+  const days = Math.floor(state.ageMs / 86400000);
+  const hrs = Math.floor(state.ageMs / 3600000) % 24;
+  const mins = Math.floor(state.ageMs / 60000) % 60;
+  document.getElementById('age').textContent =
+    days > 0 ? days + 'd ' + hrs + 'h old' : hrs > 0 ? hrs + 'h ' + mins + 'm old' : mins + 'm old';
+  for (const id of ids) {
+    document.getElementById('b_' + id).style.width = (pct(id, state.stats[id]) * 100).toFixed(1) + '%';
+  }
+}
+
+function tick() {
+  const now = Date.now();
+  // Elapsed comes from the clock, never from counting frames — a throttled or suspended tab
+  // must not lose time. This is the one P2 property the spike does keep, because without it
+  // the pet is not ageing in real time at all and the spike would prove nothing.
+  const dt = Math.max(0, now - lastTick);
+  if (dt > 0) { state = advance(loaded, state, dt); lastTick = now; }
+  render();
+}
+
+function act(kind) {
+  tick();
+  state = apply(loaded, state, kind);
+  save();
+  render();
+}
+for (const k of ['feed', 'play', 'clean']) {
+  document.getElementById(k).onclick = () => act(k);
+}
+
+// "You were away" — the pet showing that time passed, rather than quietly pretending it didn't.
+if (awayMs > 5 * 60000) {
+  const h = Math.floor(awayMs / 3600000), m = Math.floor(awayMs / 60000) % 60;
+  document.getElementById('awayTitle').textContent =
+    h >= 24 ? 'You were gone ' + Math.floor(h / 24) + ' days'
+            : h > 0 ? 'You were gone ' + h + 'h ' + m + 'm' : 'You were gone ' + m + ' minutes';
+  document.getElementById('awayBody').textContent = 'It kept ageing while you were away.';
+  document.getElementById('away').style.display = 'flex';
+  document.getElementById('awayOk').onclick = () => {
+    document.getElementById('away').style.display = 'none';
+  };
+}
+
+setInterval(tick, 1000);
+setInterval(() => { frame ^= 1; render(); }, 550);
+setInterval(save, 15000);
+addEventListener('beforeunload', save);
+render(); save();
+</script></body></html>
