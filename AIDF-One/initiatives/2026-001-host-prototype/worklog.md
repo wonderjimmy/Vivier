@@ -749,3 +749,34 @@ than each being independently free.
   definition; flagging it so §3's acceptance is revisited rather than quietly missed.
 - State now: P1a split into P1a-1 / P1a-2, tuning retuned and green, three defects open.
 - Next: P1a-1 — close AC1a.15, 1a.16, 1a.17.
+
+## [2026-08-04 22:58 HKT] SPIKE — live pet in a browser
+
+- branch: `initiative/2026-001-host-prototype` · phase: spike, outside the phase sequence
+- Status: **spike, same as P0 and the tuning viewer.** Nothing in `spike/live/` may be imported by
+  `core/` or `host/`. P2 and P5 build the real thing from scratch.
+- The core is bundled for the browser with Node's own `stripTypeScriptTypes`, so the page runs the
+  same semantics the test suite ran — not a re-transpilation that might differ.
+
+### Verified by running it, not by assertion
+- Feed moved hunger 20000 → 0 (clamped) and weight 20000 → 21499, matching the config.
+- `ageMs` 15002 → 45002 across a full page reload, hunger regrew from 0, weight preserved.
+  **The pet survives a refresh and keeps ageing against the wall clock.**
+- Elapsed comes from the clock, never from counting frames — the one P2 property the spike keeps,
+  because without it the pet is not ageing in real time and the spike would prove nothing.
+
+### Deliberately absent — these are P2/P5 criteria, not oversights
+- **No clock-anomaly handling.** A backwards system clock is clamped to zero and forgotten, so a
+  restart launders an untrusted clock into a trusted one — exactly the silent gap `scope.md` names
+  (G3). Left visibly wrong in a commented block rather than half-solved.
+- No save-schema validation (a corrupt save is discarded, not reported as a `LoadError`).
+- No write budgeting (writes on a 15 s timer).
+- No build-enforced core purity, and no ViewModel — the condition mapping is the same throwaway
+  reading the tuning viewer uses.
+- **The save format is disposable.** P2 defines the real one; this pet will not survive it. The
+  page says so on its own face, so the object cannot quietly become the app.
+
+- REQUIRES-JUDGMENT: whether it is charming enough to keep looking at — the actual question.
+- State now: P1a-1's three high-severity defects (AC1a.15–1a.17) remain open. This spike adds no
+  phase progress; it makes the pet feelable.
+- Next: P1a-1.
