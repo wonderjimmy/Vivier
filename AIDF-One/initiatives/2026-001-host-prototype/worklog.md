@@ -940,3 +940,34 @@ than each being independently free.
 - Tablet risks logged for P2 and purchase: OS can clear browser storage (P2 must use IndexedDB with
   persistent storage), cheap batteries held at 100% for months can swell (prefer a charge limit),
   OLED retains static scenes (prefer IPS), many cheap units lack Google Play (check Chrome updates).
+
+## [2026-10-04 22:56 HKT] R2 concept — the den (spike; drawn at the ADR-007 canvas, which is still pending)
+
+- branch: `initiative/2026-001-host-prototype` · phase: renovation R2 (concept, awaiting taste call)
+- Human: "試吓畫貓窩". Drawn at **160×100** (the canvas proposed for ADR-007). That ADR is still
+  unconfirmed; drawing at it is an assumption stated here, not a decision taken.
+- `spike/r2-den/src/den.mjs`: a corner of a Hong Kong flat — sage wall, plank floor, a window with
+  curtains onto a dense residential skyline, a wall clock that shows the real time it is given,
+  a floor lamp, the cat's cushion, a rug, bowls, a plant. Three spots the cat can occupy (bed, rug,
+  window) — the start of "作息", a cat with places to be.
+- Window states: day / dusk / night × clear / cloudy / rain / storm. Sky uses dithered bands, not a
+  smooth gradient; night has stars and lit windows; rain and lightning animate.
+- Lighting is applied after palette lookup through a new optional `light(x, y)` hook in
+  `spike/lib/pixel.mjs`: two hard-edged zones with a dithered seam (lamp light, and everything else),
+  plus a moonlight patch on clear nights. The window glass is never multiplied.
+- Colour choice with a reason: **sage wall**, because a ginger cat on a cream wall dissolves into it
+  — sage sits near orange's complement, so the cat reads as the warm thing in a cool room.
+- Five animated variants (night, day, dusk, rain, storm), 16 frames each, on the canvas as two new
+  artboards (Den, Den — time and weather) under "R2 — The den"; R1's boards grouped under
+  "R1 — The character". Storm added unasked because the Observatory was in fact reporting a
+  thunderstorm warning when this was drawn — the clearest demonstration of what ADR-008 is for.
+- Rejected / Learnings:
+  - The first floor read as **bricks**: colour varied every 8 px, which is a brick module. Planks
+    vary per board (46 px) with sparse grain.
+  - The first lamp pool was a **perfect circle**, reading as a spotlight on the wall. A floor-hugging
+    ellipse plus a cone under the shade, with two dither steps, reads as a lamp.
+  - Rain at 3 px and mid-grey was invisible at ×3; 5 px slanted streaks, bright at the head.
+- Not done: the cat only *occupies* spots — it does not walk between them. A side-view walk does
+  not exist yet; that is new art, not a tweak. The sleeping zzz pins to the sprite's corner and
+  lands against the window frame from the bed spot; acceptable for a concept, wrong for a build.
+- REQUIRES-JUDGMENT: the den is taste. Next: human's call on the den; ADR-007 (tablet) still open.

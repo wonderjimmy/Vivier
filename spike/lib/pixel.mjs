@@ -69,7 +69,12 @@ export function strip(frames, gap = 0) {
   return out;
 }
 
-export function toRGBA(img, palette, scale = 1, background = null) {
+/**
+ * Rasterise an indexed image. `light(x, y)` may return an [r, g, b] multiplier per logical pixel —
+ * time-of-day and lamp light in a scene — applied after palette lookup, so a lit scene still
+ * starts from the limited palette rather than from free colour.
+ */
+export function toRGBA(img, palette, scale = 1, background = null, light = null) {
   const W = img.w * scale, H = img.h * scale;
   const buf = Buffer.alloc(W * H * 4, 0);
   const bg = background ? hexToRgb(background) : null;
@@ -83,6 +88,10 @@ export function toRGBA(img, palette, scale = 1, background = null) {
         rgb = hexToRgb(hex);
       } else if (bg) rgb = bg;
       if (!rgb) continue;
+      if (light) {
+        const m = light(x, y);
+        if (m) rgb = rgb.map((c, i) => Math.max(0, Math.min(255, Math.round(c * m[i]))));
+      }
       for (let dy = 0; dy < scale; dy++) {
         for (let dx = 0; dx < scale; dx++) {
           const o = ((y * scale + dy) * W + (x * scale + dx)) * 4;
@@ -132,5 +141,5 @@ export function encodePNG({ buf, w, h }) {
   ]);
 }
 
-export const dataURI = (img, palette, scale = 1, background = null) =>
-  `data:image/png;base64,${encodePNG(toRGBA(img, palette, scale, background)).toString('base64')}`;
+export const dataURI = (img, palette, scale = 1, background = null, light = null) =>
+  `data:image/png;base64,${encodePNG(toRGBA(img, palette, scale, background, light)).toString('base64')}`;
