@@ -971,3 +971,16 @@ than each being independently free.
   not exist yet; that is new art, not a tweak. The sleeping zzz pins to the sprite's corner and
   lands against the window frame from the bed spot; acceptable for a concept, wrong for a build.
 - REQUIRES-JUDGMENT: the den is taste. Next: human's call on the den; ADR-007 (tablet) still open.
+
+## [2026-10-05 00:09 HKT] Decision — ADR-007 approved: web app on Android, start small, grow the screen
+
+- branch: `initiative/2026-001-host-prototype` · phase: renovation, between R2 concept and build
+- Human's strategy: POC on a small device; if it works, grow the screen and enrich the
+  interaction. Android fits because one ecosystem spans the whole path (small tablet → large
+  tablet → TV box + any monitor), and the browser keeps every other screen open too.
+- ADR-007 written. Annotated in place, not deleted: `scope.md` §6 display constraint, and the
+  `constitution.md` hardware-class prior (an ADR-level event, approved by the human). Still owed at
+  KEEP: `product-spec.md`'s display budget and no-RTC constraints, plus "Egg → child → teen →
+  adult" (ADR-006 / newborn) and the network line (ADR-008).
+- The R2 den concept was drawn at 160×100 under this assumption; it is now the decided canvas.
+- The ESP32 is not rejected: ADR-001's corpus and ADR-002's integer-only core keep a later port cheap.

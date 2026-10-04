@@ -69,7 +69,10 @@ These are the engineering non-negotiables for Vivier. They are *principles*, not
   TRACK-THINK. The intent-level priors (host-testable pure core shared with an ESP32-S3 target) are
   investigated there, not assumed here. This file records the law the toolchain must satisfy, not
   the toolchain.
-- **Hardware class (prior, challengeable at THINK):** integrated ESP32-S3 board with a bonded
+- **Hardware class — challenged and changed by ADR-007 (2026-10-05):** v1 is a browser web app on
+  Android (small 16:10 tablet for the POC, growing to larger screens). The ESP32 prior below is kept
+  as a possible future host, not the v1 target.
+- *Original prior:* integrated ESP32-S3 board with a bonded
   2.8" 320×240 touch LCD; mains-powered; no battery-backed RTC.
 - **No network dependency** beyond whatever time synchronisation ADR-001 settles on. No cloud, no
   accounts, no telemetry.

@@ -125,3 +125,38 @@
   time-only (rejected by the human).
 - supersedes: `scope.md` §6 "Zero network" (annotated in place); narrows `product-spec.md` OUT OF
   SCOPE's network line — applied at KEEP, since only TRACK promotion writes product-spec.
+
+## ADR-007 — v1 runs as a web app on Android; start small, grow the screen   (2026-10-05 00:09 HKT)
+
+- Context: the product spec and constitution assumed an ESP32-S3 with a bonded 2.8" 320×240 LCD.
+  The human's strategy is now: prove the pet on a small device, and if it works, grow the screen
+  and enrich the interaction step by step. The cat must live its daily routine (作息) somewhere a
+  real room fits — a 2.8" panel cannot carry the den and its window (ADR-008).
+- Decision (human: ok):
+  - **Host:** a browser web app (PWA), full-screen. **Hardware:** Android, because one ecosystem
+    covers the whole growth path — a small 16:10 tablet for the POC, larger tablets after, and an
+    Android TV box driving any monitor beyond that (no battery, cheapest at large sizes).
+  - **Canvas:** 160×100 logical pixels (16:10) with a 160×90 safe area for 16:9 panels, drawn at
+    the largest integer scale the screen allows — 1280×800 ×8, 1920×1200 ×12, 2560×1600 ×16,
+    1920×1080 ×12 cropping the bleed. One logical pixel is the same size for every element.
+  - **What never changes along the path:** the pure core, the 160×100 canvas, the input event
+    vocabulary, the save format. **What changes:** only the Platform layer — scale factor and input
+    adapters (touch now; Bluetooth or USB keys later map to the same events). A genuinely new kind
+    of interaction is the only thing that adds a core event.
+- Consequences carried forward:
+  - The platform clock is network-synced, so the ESP32's no-RTC problem does not exist for v1. P2's
+    clock-anomaly handling still applies — an owner can set the clock wrong.
+  - Android browsers can evict storage: P2 must use IndexedDB with a persistent-storage request.
+  - Purchase checks: IPS not OLED; Android 11+ with Google Play; a charge limit if the tablet lives
+    on a charger; ask for the true panel resolution.
+  - ADR-001 and ADR-002 stand: the golden-vector corpus and integer-only core keep a later port to a
+    microcontroller cheap. **The ESP32 is not rejected** — it moves from v1 target to a possible
+    future host.
+- Alternatives rejected: (a) the 2.8" ESP32 board for v1 — cannot carry the den, and its time
+  problem is pure cost for a POC; (b) a 320×180 canvas — measured on a 13" panel it makes the cat
+  ~2.9 cm tall and its eye ~2.7 mm, too small to read across a desk; (c) a native Android app — the
+  browser already gives full-screen, touch, clock and network, and keeps every other screen open.
+- supersedes: `scope.md` §6 "Display fixed at 320×240" (annotated in place); the
+  `constitution.md` hardware-class prior (annotated in place); `product-spec.md` HARD CONSTRAINTS
+  "Display budget: 320×240 logical, 64×64 sprites" and "no battery-backed real-time clock" —
+  applied at KEEP, since only TRACK promotion writes product-spec.
