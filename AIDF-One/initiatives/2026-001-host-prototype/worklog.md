@@ -854,3 +854,19 @@ than each being independently free.
 
 - REQUIRES-JUDGMENT: the whole of R1 is taste. The human's call on the design sheet IS the gate.
 - Next: human taste call on the character; approval (or rejection) of the R1 → R2 → R3 sequence.
+
+## [2026-10-04 17:07 HKT] R1 concept — moved onto a Design canvas (ADR-005's review surface, rerouted)
+
+- branch: `initiative/2026-001-host-prototype` · phase: renovation R1 (concept, awaiting taste call)
+- `/design-login` is not available in this environment, so the old Claude Design project stays
+  unreachable. The human chose a new Design-canvas artifact as the review surface instead:
+  **https://claude.ai/artifact/YRnvzyG4D738pNkMWH5hJB** (private until shared from its Share menu).
+- ADR-005's rule still holds: **repo → design, one way.** Every image on the canvas (16 animation
+  strips, 26 stills) is exported by `spike/r1-character/src/canvas-assets.mjs` from the same subject
+  definitions the sheet uses, then uploaded. The animated subjects were extracted into
+  `subjects.mjs` so the sheet and the canvas cannot show different cats.
+- Seven artboards: Main (hero), Stages, Conditions, Reactions, Glance (device scale), System
+  (paper doll), Palette. The canvas's own design rules ruled out the sheet's Inter body face and
+  a radial-gradient spotlight; replaced with IBM Plex Sans and a flat well.
+- Not verified by rendering: the canvas type's instructions say not to, unless asked.
+- Next: unchanged — the human's taste call on the character, and approval of R1 → R2 → R3.
