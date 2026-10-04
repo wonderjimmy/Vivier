@@ -78,7 +78,7 @@ Cuts from the candidate list in `project-intent.md` §6, with the reason each wa
 - **The core must stay device-portable.** No host-platform construct — no DOM, no ambient `Date`,
   no timers, no storage API, no `Math.random()` — may appear in the core's import graph. This is
   mechanically enforced (see Layer 6 below), not a code-review convention.
-- **Zero network.** Stricter than product-wide: the prototype does not even do time
+- **Zero network** — *narrowed by ADR-008 (2026-10-04): one read-only GET to Hong Kong Observatory open data for the den's window, presentation only, never into the core. Everything below otherwise stands.* Stricter than product-wide: the prototype does not even do time
   synchronisation. Trusted-time acquisition is a device problem and is deliberately not solved here;
   the host build supplies the platform clock through the same seam a device NTP source will later.
 - **Display fixed at 320×240 logical with 64×64 sprites** even though a browser has no such limit.

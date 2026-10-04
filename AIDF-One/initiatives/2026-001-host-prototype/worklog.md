@@ -920,3 +920,23 @@ than each being independently free.
    15–30 min; on failure the window shows the time-of-day sky with no weather — never a fake one.
 - Pending human decision: (a) monitor as v1 target, (b) the weather network exception. Both become
   ADRs on approval. No SSOT boundary text changed yet.
+
+## [2026-10-04 22:49 HKT] Decision — ADR-008 approved (weather); ADR-007 reserved (tablet target, pending)
+
+- branch: `initiative/2026-001-host-prototype` · phase: renovation, between R1 and R2
+- Human approved the weather exception. Before writing it, verified the source is usable without
+  infrastructure: HKO's `rhrread` endpoint returns `access-control-allow-origin: *`, so a browser
+  on the tablet reads it directly. Had it lacked CORS, the only route would have been a proxy —
+  a cloud dependency the product spec forbids — and the recommendation would have changed.
+- ADR-008 written; `scope.md` §6 "Zero network" annotated in place. product-spec's network line
+  is narrowed at KEEP.
+- **ADR-007 is reserved** for the tablet decision (13"+ Android tablet as the v1 target, a
+  160×100 logical canvas with a 160×90 16:9 safe area). The human is planning to buy but has not
+  confirmed; the number is held so the two decisions keep the order they were proposed in.
+- Correction recorded: I first suggested a 320×180 canvas. Measured against a 13" 16:10 panel
+  (~28.7 cm wide) that makes the cat ~2.9 cm tall and its eye ~2.7 mm — too small to read an
+  expression across a desk. 160×100 gives ~5.7 cm, and still integer-scales to 1280×800 (×8),
+  1920×1200 (×12), 2560×1600 (×16) and 1920×1080 (×12, cropping the 16:9 bleed).
+- Tablet risks logged for P2 and purchase: OS can clear browser storage (P2 must use IndexedDB with
+  persistent storage), cheap batteries held at 100% for months can swell (prefer a charge limit),
+  OLED retains static scenes (prefer IPS), many cheap units lack Google Play (check Chrome updates).

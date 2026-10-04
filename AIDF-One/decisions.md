@@ -97,3 +97,31 @@
   renovation serves this initiative's own SUCCESS moment, and a second open initiative would break
   one-branch-one-initiative while 001 is unfinished.
 - supersedes: the "Finished sprite art" row of `scope.md` §5 (annotated in place, not deleted)
+
+## ADR-008 — one network exception: real Hong Kong weather in the den's window   (2026-10-04 22:48 HKT)
+
+- Context: the human wants the den's window to show real time and real weather. Time needs no
+  network. Weather does, and `product-spec.md` OUT OF SCOPE forbids "any network dependency beyond
+  time synchronisation", while `scope.md` §6 is stricter still: "Zero network".
+- Decision (human: yes): **exactly one read-only source** — Hong Kong Observatory open data,
+  `https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=en`. GET only;
+  no key, no account, no location parameter. Polled every 30 minutes (the feed updates hourly).
+- Verified before deciding, not assumed (2026-10-04): the endpoint answers a cross-origin request
+  with `access-control-allow-origin: *`, so the page reads it directly from the device. **No proxy,
+  no server of ours, no cloud dependency is introduced** — which is what keeps this inside the
+  spirit of the boundary rather than breaking it. Payload carries `icon` (weather icon codes),
+  `temperature`, `rainfall`, `warningMessage` and `updateTime`.
+- **Presentation only.** Weather is an input to the Render and Platform layers and never enters the
+  simulation core. It does not touch any stat. That keeps the core pure (constitution law 1) and
+  replay deterministic (law 3); a pet whose health depended on a live feed could not be replayed.
+  The cat may later *react* to weather visually; if weather ever affects state, that is a new
+  decision with its own events in the replay log.
+- **Never a fake sky.** On a failed fetch, or data older than 3 hours, the window shows the
+  time-of-day sky with no weather at all — not the last-known weather, and not a default sunny day
+  (constitution law 6). Icon codes are mapped to the window's states from HKO's own published icon
+  list when implemented, never guessed.
+- Alternatives rejected: a proxy or our own backend (a cloud dependency in disguise); browser
+  geolocation (a permission prompt and a location leak for no gain — HKO's feed is territory-wide);
+  time-only (rejected by the human).
+- supersedes: `scope.md` §6 "Zero network" (annotated in place); narrows `product-spec.md` OUT OF
+  SCOPE's network line — applied at KEEP, since only TRACK promotion writes product-spec.
