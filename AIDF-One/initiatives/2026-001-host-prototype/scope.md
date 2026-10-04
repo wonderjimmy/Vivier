@@ -68,7 +68,7 @@ Cuts from the candidate list in `project-intent.md` §6, with the reason each wa
 | **Interactions: pet, discipline, tease** | `pet` duplicates `play` with no distinct state effect. `discipline` and `tease` both presuppose a misbehaviour/personality system that is itself cut. Three interactions is enough to test whether interacting is charming. |
 | **Local web server / phone control** | A device-side feature with no host analogue. |
 | **Physical enclosure, any hardware purchase** | Gated behind §4 by design. Nothing in this initiative may depend on a device existing. |
-| **Finished sprite art** | This initiative buys the *minimum* readable sprite vocabulary at final resolution, deliberately not a finished art set — the question is "what is the fewest frames that read as alive", and answering it with a full art set answers nothing. |
+| ~~**Finished sprite art**~~ **REVERSED by ADR-006 (2026-10-04, human direction)** | ~~This initiative buys the *minimum* readable sprite vocabulary at final resolution, deliberately not a finished art set.~~ The renovation brings the full character design back into scope; see `decisions.md` ADR-006. Row kept, not deleted, so the reversal is visible. |
 | **Save migration between schema versions** | Version is *recorded and validated* from day one; migrating between versions is deferred until there is a save worth keeping. Pre-§4, a rejected save is an acceptable outcome. |
 
 ## 6. HARD CONSTRAINTS (this initiative only)

@@ -780,3 +780,77 @@ than each being independently free.
 - State now: P1a-1's three high-severity defects (AC1a.15–1a.17) remain open. This spike adds no
   phase progress; it makes the pet feelable.
 - Next: P1a-1.
+
+## [2026-10-04 12:42 HKT] RENOVATION — THINK + R1 character concept (proposal, awaiting taste call)
+
+- branch: `initiative/2026-001-host-prototype` · phase: renovation, R1 of 3 (concept only)
+- Rehydrated from disk after a two-month gap: initiative tip `c354ee9` matches remote; GitHub shows
+  0 issues, 0 PRs, 0 stars — no colleague has responded yet. Session started on `main` (left there
+  after the README commit); switched back before any work.
+- Human directive: renovate the whole project — aesthetics, code, and the pet's design.
+- Recorded as **ADR-006**: reverses `scope.md` §5's "Finished sprite art" cut by explicit human
+  direction; sequence is character → surfaces → code.
+
+### THINK — the three axes, honestly
+- **Pet design.** P0's cat was a 32×32 mint blob — enough to pass a go/no-go, not to be loved.
+  §4 SUCCESS clause 4 ("the owner still wants to look at it") is now the binding criterion.
+- **Aesthetics.** The demo pages are functional dark-mode utility screens. Nothing about them says
+  "object on a desk". They should derive from the character, so they wait for it.
+- **Code.** Three real findings beyond the open P1a-1 defects:
+  1. Three copy-pasted PNG encoders and compositors across spikes (now consolidated in
+     `spike/lib/pixel.mjs`; the old spikes migrate in R3).
+  2. `docs/` is hand-copied from spike builds, so the published demos silently drift.
+  3. **Nothing type-checks the TypeScript.** Node strips types without checking them; there is
+     no `tsc` anywhere. Every type annotation in `core/` is currently decorative.
+
+### Proposed sequence (ROADMAP amendment 4 — NOT yet written into scope; awaits approval)
+- **R1 — Character** (taste gate): the design system below, formalised with INTENT and criteria
+  once the direction is approved. Writing criteria for a design the human may reject would encode
+  an unapproved intent.
+- **R2 — Object & surfaces** (taste gate): the 160×120 world the cat lives in (one logical pixel =
+  two device pixels everywhere, so no mixed pixel scales), a rendered device with three physical
+  buttons, and the demo pages rebuilt in one design language.
+- **R3 — Code** (oracle gate + fresh-context AUDIT): close AC1a.15–1a.17, the P1a-2 toolchain
+  (self-tests, mutation gate on a copy), add `tsc --noEmit`, and one demo build that writes `docs/`
+  directly.
+
+### R1 concept — what was built (`spike/r1-character/`, spike status, no leakage into core/host)
+- A **parametric paper-doll cat**: bodies generated from per-stage geometry with one top-left light
+  and a four-tone ramp; faces are hand-drawn stamps placed at an anchor computed from the head;
+  conditions are palette remaps; effects pinned clear of the ears. 4 stages, 9 conditions,
+  3 reactions, from **3 geometry records + 23 hand-drawn stamps**.
+- Design rationale is traceable to the criteria, not to taste alone: Kindchenschema (big head,
+  big low eyes) because the success criterion is guilt; whole-animal palette change for sick /
+  fading / dead because P0 proved icons alone vanish at distance; weight as a body parameter so
+  over-feeding — the one mechanic that makes attention costly — is visible on the cat itself.
+- Verified by looking, not by assertion: rendered, screenshotted and corrected over four
+  iterations at 12× with a pixel grid. CSS animation confirmed running (`steps(16, jump-none)`,
+  background position moved 40% → 66.7% in 700 ms, `image-rendering: pixelated`).
+
+### Rejected / Learnings
+- **Narrow ears are all outline.** The first ears were tall slivers; the inner-edge outline ate
+  the fill and they read as two dark posts. Only the top four rows of an ear are visible above the
+  head, so the triangle must be broad at that height, not at its base.
+- **A thin tail is a pipe.** At radius ≤1.65 a tapered tail is entirely outline. Radius ≥2.1 with
+  gentle taper leaves a 2 px interior for fur and ring stripes.
+- **Effects collide with ears at every stage** unless pinned to a corner, because ear tips sit
+  exactly where "above the head, to the right" puts an icon.
+- **Remaps must cover every derived key.** Adding a lit-edge outline (`inkL`) silently left warm
+  brown edges on the ghost and the sick cat until the remaps were extended.
+- **I verified every edit by grep this time.** The last unverified multi-replace reported success
+  for an edit that never landed; ten replacements were read back individually here.
+
+### Not done, stated plainly
+- **Claude Design push blocked**: the DesignSync authorisation has expired, and `/design-login`
+  cannot run in this non-interactive session. ADR-005's review surface is unavailable until the
+  human runs it once interactively. The sheet is delivered as a local file instead.
+- **P6's AC6.1 no longer fits this art model.** It budgets "≤ 20 sprite cells at 64×64"; this
+  model has no body cells at all and 23 small stamps. Exceeding a ruler written for a different
+  model is not passing or failing it — the criterion must be rewritten at R1 formalisation, not
+  quietly reinterpreted.
+- No formal criteria, no fresh-context AUDIT: this is THINK-level concept exploration, the
+  same status P0 had before its criteria. R1 proper is audited after the direction is approved.
+- P1a-1 (AC1a.15–1a.17) and P1a-2 remain open, deferred by ADR-006's ranking.
+
+- REQUIRES-JUDGMENT: the whole of R1 is taste. The human's call on the design sheet IS the gate.
+- Next: human taste call on the character; approval (or rejection) of the R1 → R2 → R3 sequence.

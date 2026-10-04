@@ -78,3 +78,22 @@
 - Alternatives rejected: authoring inside the Design project (SSOT behind a login); no review surface
   at all (leaves the criterion that decides the hardware purchase with no mechanism).
 - supersedes: none
+
+## ADR-006 — "Finished sprite art" is back in scope; renovation leads with the character   (2026-10-04 12:42 HKT)
+
+- Context: `scope.md` §5 cut finished sprite art from this initiative: it was to buy only the
+  minimum readable vocabulary. Three spikes have since shown the mechanics work (dual-oracle core,
+  a tuned curve with a real optimum, a pet that lives in a browser). The human has directed a
+  renovation of the whole project — aesthetics, code, and the pet's design.
+- Decision: the §5 cut is **reversed by explicit human direction**, recorded here so it reads as a
+  decision and not as scope creep. The renovation is sequenced **character → surfaces → code**,
+  because the page and device aesthetics derive from the character's palette and silhouette, and
+  because `scope.md` §4 SUCCESS clause 4 — "the owner still wants to look at it" — is the
+  criterion now binding, and it is a question of charm, not arithmetic.
+- Ranked by aim, not by age of the open item: the three open P1a-1 defects (AC1a.15–1a.17) do not
+  bite on the shipped config; they bite on configs nobody runs yet. They are deferred, not dropped.
+- Alternatives rejected: (a) code first — the defects don't touch the north-star on the shipped
+  config, and design is the input everything visual depends on; (b) a new initiative — the
+  renovation serves this initiative's own SUCCESS moment, and a second open initiative would break
+  one-branch-one-initiative while 001 is unfinished.
+- supersedes: the "Finished sprite art" row of `scope.md` §5 (annotated in place, not deleted)
