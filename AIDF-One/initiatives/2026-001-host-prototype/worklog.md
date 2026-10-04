@@ -894,3 +894,29 @@ than each being independently free.
   only rewritten at promotion; noted here so it is not missed.
 - Still open from the previous turn: the interaction design proposal (pet by touch, refusal,
   wall-clock sleep, care-cures-sickness, on-screen calls only, minigame deferred).
+
+## [2026-10-04 22:39 HKT] THINK — three new directions from the human (not yet decided; nothing built)
+
+- branch: `initiative/2026-001-host-prototype` · phase: renovation, between R1 and R2
+1. **Interaction design parked.** The human wants the first version to stay simple button presses.
+   The proposal (pet by touch, refusal, care-cures, on-screen calls, minigame) is shelved, not
+   rejected. The three existing interactions stand.
+2. **First version lives on a ~10–15" monitor, not the 2.8" board.** Conflicts, verified in file:
+   `product-spec.md` HARD CONSTRAINTS ("Display budget: 320×240 logical, 64×64 sprites") and
+   `scope.md` §6 ("Display fixed at 320×240 logical"). `constitution.md` marks the hardware class
+   a prior "challengeable at THINK", so this is a legitimate change — but an ADR, not a drift.
+   Upside: a monitor driven by a computer has a real clock and a network, which removes the
+   ESP32's no-RTC problem outright, and it is still software-first per intent §9.
+   Implication the human did not state: on a large screen a cat fixed in the centre reads as a
+   sticker. "作息" (a daily routine) needs places to be — bed, bowl, window — and moving between
+   them needs a side-view walk the character does not have yet. That is new art; costed, not hidden.
+   Also: "sleep cycle tied to real wall-clock time" is in intent §6, was never cut, and was never
+   specified. It belongs here.
+3. **A den with a window tied to real time and real weather.** Time needs no network: day/night,
+   lighting and sunrise/sunset can be computed locally. **Weather does**, which conflicts with
+   `product-spec.md` OUT OF SCOPE ("any network dependency beyond time synchronisation") and
+   `scope.md` §6 ("Zero network"). Recommended boundary if approved: one read-only public source
+   (Hong Kong Observatory open data — no key, no account, no location sent), polled every
+   15–30 min; on failure the window shows the time-of-day sky with no weather — never a fake one.
+- Pending human decision: (a) monitor as v1 target, (b) the weather network exception. Both become
+  ADRs on approval. No SSOT boundary text changed yet.
