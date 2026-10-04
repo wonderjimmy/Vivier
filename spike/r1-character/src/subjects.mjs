@@ -2,7 +2,7 @@
 // Shared by the design sheet (build.mjs) and the Design-canvas export (canvas-assets.mjs) so the two
 // can never show different cats.
 
-import { cat, egg, withFx, SICK, FADED, GHOST } from './cat.mjs';
+import { cat, egg, newborn, withFx, SICK, FADED, GHOST } from './cat.mjs';
 import { blank, blit, remap } from '../../lib/pixel.mjs';
 
 export const N = 16;            // frames per loop
@@ -69,7 +69,10 @@ export const REACTIONS = [
 ];
 
 export const STAGE_ANIMS = [
-  { id: 'egg', note: 'A tabby band hints at who is inside.', frames: (f) => egg({ wobble: [0, 0, 0.9, 0, 0, 0, -0.9, 0][f % 8], cracks: 7 }) },
+  {
+    id: 'newborn', note: 'Born blind, asleep in a basket. Opening its eyes is the first stage change.',
+    frames: (f) => withFx(newborn({ sink: f >= N / 2 ? 1 : 0, twitch: f === 5 || f === 6 }), 'kitten', f >= 10 ? ['zzz'] : []),
+  },
   { id: 'kitten', note: 'Head is two-thirds of the animal.', frames: idle('kitten') },
   { id: 'junior', note: 'Legs and tail lengthen first.', frames: idle('junior') },
   { id: 'adult', note: 'Same face, grown into.', frames: idle('adult') },

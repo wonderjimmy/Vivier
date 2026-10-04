@@ -870,3 +870,27 @@ than each being independently free.
   a radial-gradient spotlight; replaced with IBM Plex Sans and a flat well.
 - Not verified by rendering: the canvas type's instructions say not to, unless asked.
 - Next: unchanged — the human's taste call on the character, and approval of R1 → R2 → R3.
+
+## [2026-10-04 22:34 HKT] R1 concept — the egg is replaced by a newborn (human rejection, refined)
+
+- branch: `initiative/2026-001-host-prototype` · phase: renovation R1 (concept, awaiting taste call)
+- Human, bluntly and correctly: the cat now looks like a real cat, so hatching from an egg is odd.
+  The egg was chosen when the pet was an abstract mint blob; it did not survive the move to a
+  realistic animal. Accepted without argument.
+- **Replacement: a newborn, curled asleep in a wicker basket on a blue blanket, eyes shut.** Real
+  kittens are born blind and open their eyes at about a week, and sleep most of the day — so the
+  first stage is mostly asleep, and **the first life-stage change the owner sees is the kitten
+  opening its eyes.** That matters for `scope.md` §4: the 3-day soak must contain at least one
+  stage change, so the newborn stage must be tuned to end inside three days (P3's threshold).
+- Stated exception to the paper-doll rule: the newborn's head is smaller than the shared face
+  stamps allow, so it has its own two face stamps (asleep, cry). Every later stage still shares one
+  face. Recorded, not hidden.
+- Canvas updated (Main, Stages); sheet rebuilt. The canvas is now shared "anyone with the link" —
+  set by the human from the Share menu, not by me.
+- Rejected / Learnings: first newborn ears were drawn behind the head and almost entirely hidden;
+  raised the tips and filled them with fur and a pink inner, same lesson as the cat's ears.
+- **SSOT drift to resolve at KEEP:** `product-spec.md` still says "Egg → child → teen → adult", and
+  the Layer-1 matrix row in `scope.md` still names "egg→child". product-spec is TRACK-owned and is
+  only rewritten at promotion; noted here so it is not missed.
+- Still open from the previous turn: the interaction design proposal (pet by touch, refusal,
+  wall-clock sleep, care-cures-sickness, on-screen calls only, minigame deferred).

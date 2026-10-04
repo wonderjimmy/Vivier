@@ -51,6 +51,9 @@ export const GHOST = {
   ink: 'ghost.ink', inkL: 'ghost.0', eye: 'ghost.ink',
 };
 Object.assign(PALETTE, {
+  // newborn's basket and blanket — props, so condition remaps leave them alone
+  'wick.0': '#5e3620', 'wick.1': '#8c5630', 'wick.2': '#b77b47', 'wick.3': '#d9a771',
+  'blank.0': '#6f98c4', 'blank.1': '#9dbfe3', 'blank.2': '#cfe1f4',
   'sick.0': '#6f7b45', 'sick.1': '#93a05c', 'sick.2': '#b5bd7b', 'sick.3': '#d6d9a3', 'sick.s': '#5d6939',
   'sickc.0': '#c2c49a', 'sickc.1': '#dcdcb9', 'sickc.2': '#eeeed6', 'sick.p': '#b98b8b',
   'fade.0': '#8a7c78', 'fade.1': '#a89a94', 'fade.2': '#c4b8b1', 'fade.3': '#ddd4cd', 'fade.s': '#776a66', 'fade.p': '#c7a6a6',
@@ -294,7 +297,85 @@ export function cat(stage, o = {}) {
   return img;
 }
 
-// ---- the egg ----------------------------------------------------------------------------
+// ---- the newborn ------------------------------------------------------------------------
+// Replaces the egg. Cats are not hatched: a newborn kitten is born blind, opens its eyes at
+// about a week, and sleeps most of the day. So the first stage is a tiny curled kitten asleep in
+// a basket, and the first life-stage change the owner sees is the moment it opens its eyes.
+//
+// The newborn has its own small face (eyes always shut, a nose, a mouth that can cry). It is the
+// one stage the shared face stamps do not fit — a stated exception, not a hidden one.
+
+const NB = { e: 'ink', p: 'pink.0', P: 'pink.1', i: 'ink' };
+export const NEWBORN_FACE = {
+  asleep: stamp(['ee...ee', '.......', '...p...'], NB),
+  cry:    stamp(['ee...ee', '.......', '...p...', '..iPi..'], NB),
+};
+
+export function newborn({ sink = 0, twitch = false, face = 'asleep' } = {}) {
+  const img = blank(SIZE, SIZE);
+  const cx = 16;
+  const shadow = ellipse(cx, 30.9, 12, 0.95);
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) if (shadow.test(x, y)) set(img, x, y, 'ground');
+
+  // inside of the basket, then the blanket the kitten lies on
+  const opening = ellipse(cx, 20.6, 12.2, 3.6);
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) if (opening.test(x, y)) set(img, x, y, 'wick.0');
+  paint(img, ellipse(cx, 20.4, 11.0, 3.0), 'blank', { outline: false, band: (x, y) => (y < 19 ? 2 : 1) });
+
+  // the kitten, curled: body behind, head resting on the left, tail wrapped round the front
+  const k = sink; // breathing: the whole kitten sinks a pixel into the blanket on the exhale
+  const body = ellipse(18.2, 17.4 + k, 7.4, 4.2);
+  paint(img, body, 'fur');
+  for (const [x, y] of [[20, 15], [22, 15], [21, 16], [23, 16], [19, 14]]) if (get(img, x, y + k)?.startsWith('fur')) set(img, x, y + k, 'stripe');
+  const tail = stroke([24.6, 18.4 + k], [26.6, 21.6 + k], [16.0, 20.6 + k], 1.55);
+  const tm = maskOf(tail);
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+    if (!inside(tm, x, y)) continue;
+    const t = tail.along(x, y);
+    set(img, x, y, isEdge(tm, x, y) ? 'ink' : t > 0.5 && Math.floor(t * 8) % 2 === 0 ? 'stripe' : 'fur.2');
+  }
+  // small ears, one of which twitches now and then
+  for (const [a, b, tip] of [
+    [[6.4, 15.6 + k], [11.0, 12.6 + k], twitch ? [5.8, 9.8 + k] : [7.0, 8.8 + k]],
+    [[11.8, 12.6 + k], [16.4, 15.0 + k], [15.4, 8.8 + k]],
+  ]) {
+    const om = maskOf(triangle(a, b, tip));
+    const inner = maskOf(triangle(
+      [a[0] * 0.6 + tip[0] * 0.4 + 0.6, a[1] * 0.6 + tip[1] * 0.4], [b[0] * 0.6 + tip[0] * 0.4 - 0.6, b[1] * 0.6 + tip[1] * 0.4], [tip[0], tip[1] + 2.2]));
+    for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+      if (!inside(om, x, y)) continue;
+      set(img, x, y, isEdge(om, x, y) ? 'ink' : inside(inner, x, y) ? 'pink.1' : 'fur.1');
+    }
+  }
+  const head = ellipse(11.4, 15.8 + k, 5.6, 4.5);
+  const hm = paint(img, head, 'fur');
+  for (const [x, y] of [[10, 12], [12, 12]]) if (inside(hm, x, y + k) && !isEdge(hm, x, y + k)) set(img, x, y + k, 'stripe');
+  paint(img, ellipse(11.4, 17.9 + k, 3.0, 1.6), 'cream', { outline: false, clip: hm });
+  blit(img, NEWBORN_FACE[face], 8, 15 + k);
+  for (const x of [7, 15]) if (inside(hm, x, 17 + k) && !isEdge(hm, x, 17 + k)) set(img, x, 17 + k, 'pink.1');
+
+  // the basket's front wall covers the kitten's lower half; woven, lit from the upper left
+  const wall = { test: (x, y) => y + 0.5 >= 20.6 && ellipse(cx, 20.6, 12.2, 9.2).test(x, y) };
+  const wm = maskOf(wall);
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+    if (!inside(wm, x, y)) continue;
+    if (isEdge(wm, x, y)) { set(img, x, y, 'ink'); continue; }
+    if (y <= 22) { set(img, x, y, (x + y) % 2 ? 'wick.3' : 'wick.2'); continue; }   // the rim
+    const weave = (Math.floor(x / 2) + Math.floor(y / 2)) % 2 === 0;
+    const shade = x > 21 || y > 27 ? 0 : 1;
+    set(img, x, y, weave ? `wick.${shade + 1}` : `wick.${shade}`);
+  }
+  // the blanket spills over the rim at the front left
+  const drape = maskOf(ellipse(9.6, 22.4, 4.0, 2.2));
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) {
+    if (!inside(drape, x, y) || y < 21) continue;
+    set(img, x, y, isEdge(drape, x, y) && y > 22 ? 'blank.0' : y > 23 ? 'blank.1' : 'blank.2');
+  }
+  return img;
+}
+
+// ---- the egg (retired) -------------------------------------------------------------------
+// Kept only so the history in the worklog can be reproduced; no subject uses it.------------------------------------------------------------------------
 
 export function egg({ wobble = 0, cracks = 0 } = {}) {
   const img = blank(SIZE, SIZE);

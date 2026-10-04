@@ -64,9 +64,10 @@ const SECTIONS = {
   },
   stages: {
     group: 'Character', title: 'Life stages',
-    body: `<p class="lede">Egg → kitten → junior → adult. Proportion carries age: the head stays the
-      same size while everything below it grows, so the head-to-body ratio falls from about
-      two-thirds to about half. Every stage breathes, blinks and swishes its tail.</p>
+    body: `<p class="lede">Newborn → kitten → junior → adult. Cats are born blind and open their eyes
+      at about a week, so the first stage is a kitten asleep in a basket, and the first change the
+      owner sees is the moment it opens its eyes. After that the head keeps its size while everything
+      below it grows.</p>
       <div class="row stages">${STAGE_ANIMS.map((s, i) =>
         `${i ? '<span class="arrow">→</span>' : ''}${anim(s.frames, 5, { label: s.id, note: s.note })}`).join('')}</div>`,
   },
