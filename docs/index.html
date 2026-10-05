@@ -1,32 +1,90 @@
-<!doctype html><html><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vivier — demos</title><style>
-*{box-sizing:border-box}body{margin:0;padding:40px 24px;background:#0b0d10;color:#e6e8ec;
- font:15px/1.6 ui-sans-serif,system-ui,-apple-system,sans-serif;display:flex;justify-content:center}
-.w{max-width:620px;width:100%}
-h1{font-size:22px;margin:0 0 6px}
-p.sub{color:#9aa2ad;margin:0 0 30px}
-a.card{display:block;text-decoration:none;color:inherit;background:#14161a;border:1px solid #262a31;
- border-radius:12px;padding:18px 20px;margin-bottom:12px}
-a.card:hover{border-color:#3d8a68}
-a.card b{display:block;font-size:16px;margin-bottom:3px}
-a.card span{color:#9aa2ad;font-size:13.5px}
-.foot{margin-top:26px;color:#5b626d;font-size:12.5px}
-.foot a{color:#7ad4a0}
-</style></head><body><div class="w">
-<h1>Vivier</h1>
-<p class="sub">A desktop electronic pet that ages in real time and degrades if you ignore it.
-Everything below runs the same simulation core — no install, no build.</p>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vivier — a desktop electronic pet</title><meta name="description" content="Vivier is a desktop electronic pet: a ginger tabby that ages in real time and lives in a Hong Kong flat whose window follows the real weather.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=Silkscreen&display=swap"><style>
+:root{--ground:#f3eee7;--card:#fbf8f3;--well:#efe4d6;--line:#e4dbcf;--ink:#2e1c20;--mute:#6a524a;--accent:#b4501c;
+  --display:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif;--body:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;
+  --label:'Silkscreen','Courier New',monospace}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}a:hover{color:#8f3d14}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 80px}
+nav.top{display:flex;align-items:center;gap:22px;flex-wrap:wrap;padding:22px 0 30px}
+nav.top .brand{font:800 22px/1 var(--display);letter-spacing:-.01em;color:var(--ink);text-decoration:none;margin-right:auto}
+nav.top a.link{font:13px/1 var(--label);letter-spacing:.05em;color:var(--mute);text-decoration:none;padding:8px 0}
+nav.top a.link[aria-current=page]{color:var(--accent)}
+nav.top a.link:hover{color:var(--ink)}
+section{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:34px;margin-bottom:22px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em}
+h1{font-weight:800;font-size:clamp(34px,6vw,64px);line-height:1.02;margin:6px 0 14px}
+h2{font-weight:800;font-size:clamp(24px,3.4vw,34px);line-height:1.1;margin-bottom:8px}
+h3{font-weight:600;font-size:18px;margin-bottom:6px}
+.kicker{font:13px/1.4 var(--label);letter-spacing:.06em;color:var(--accent);margin:0}
+.lede{color:var(--mute);font-size:17px;max-width:68ch;margin:0 0 24px}
+.fine{color:var(--mute);font-size:14px;max-width:74ch;margin:18px 0 0}
+.pix{image-rendering:pixelated}
+.anim{image-rendering:pixelated;background-repeat:no-repeat;background-size:1600% 100%;
+  animation:sp 2.4s steps(16,jump-none) infinite}
+@keyframes sp{from{background-position:0 0}to{background-position:100% 0}}
+@media (prefers-reduced-motion:reduce){.anim{animation:none}}
+footer{color:var(--mute);font-size:14px;padding:16px 0}
+@media (max-width:640px){section{padding:22px 18px}}
 
-<a class="card" href="pet.html"><b>🐱 The pet, live</b>
-<span>Ages against your clock, survives a refresh. Feed / play / clean. Leave it and come back.</span></a>
+.hero{display:flex;gap:40px;align-items:center;flex-wrap:wrap}
+.hero .copy{flex:1;min-width:260px}
+.hero .lede{margin-bottom:0}
+.thumb{image-rendering:pixelated;background-repeat:no-repeat;background-size:1600% 100%;border-radius:12px;max-width:100%}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:18px}
+a.card{display:flex;flex-direction:column;gap:14px;text-decoration:none;color:var(--ink);background:var(--card);
+  border:1px solid var(--line);border-radius:18px;padding:22px}
+a.card:hover{border-color:var(--accent)}
+a.card h3{margin:0}a.card p{margin:0;color:var(--mute);font-size:15px}
+.well{background:var(--well);border-radius:12px;display:flex;justify-content:center;align-items:center;padding:14px}
+.old a.card{background:transparent}
+h2.group{font:13px/1.4 var(--label);letter-spacing:.06em;color:var(--mute);margin:34px 0 14px}
+</style></head>
+<body><div class="wrap">
+<nav class="top" aria-label="Vivier"><a class="brand" href="index.html">Vivier</a><a class="link" href="index.html" aria-current="page">HOME</a><a class="link" href="character.html">CHARACTER</a><a class="link" href="den.html">DEN</a><a class="link" href="pet.html">LIVE PROTOTYPE</a></nav>
 
-<a class="card" href="tuning.html"><b>📈 Tuning viewer</b>
-<span>30 days in one screen, four care patterns. Neglect kills it in six days; over-feeding kills it too.</span></a>
+<section class="hero">
+  <div class="well" style="padding:20px"><div class="anim thumb" role="img" aria-label="The kitten, breathing and blinking"
+    style="width:224px;aspect-ratio:1/1;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAAgCAYAAABkS8DlAAAES0lEQVR42u3dsY7TQBCA4bwEVEgnChASLRUSFQ0vQUtJjURLhXgEWiokRElDT30FEhKioKYE2sBaTJjs2Ul2ZzZje/+RVndKHH/O2h7PJraz2RAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEsd54cPPO9hyvwcfHn59PEETnBUBJQimdHh8ff94+BRg+fqcDgDSzyyd3T0oqJdPi4+Mvw6cAw8fv0JeEIu3QjEumxcfHn79PAYSP37GfZvTr9duhSWJ5fv/2laaTj0zvlQDx8fHjfAowfPxOBwA6AUmy2X58OrSX964PLf3/49XDXSJqlQDx8fHjfAowfPyOfJnpWOLJE1D6m5KQTkTWKgQfHz/OpwDCx+/YTzPQYJ6ApCVcJ6DUJPlYEyA+Pn6cTwGGj9/pAGAqAeXJJ2/6O4gWCRAfHz/OpwDDx1+/v7EkH48TEfDx8eN8CiB8/H79/wnob9y6dmNoU6jAelq3BIiPjx/nU4Dh43fn7xZAEkpqh5JPanraN48uXDoAfz1+yfLQ//PwKcDw51SAHtsH3A/APfZ/wmXGYwlo+/P7XptKQJKEShekhV968Gnhn7oM3r4cfE9dhlZ++q4q0o96/9Hrv3Yf9ChAaj+KXJMfWQBG+14FwJQ9dfCn/w3bf3qBBsaSz+fHz4Y2loQk+chCnJr4W/mlZ0WuzZd5ltxRCr/f7c+7ACnd/9c2AIkegC3Z1wexY76elv6/sBUh+prC3UcM/8D0nP7/99cPQxNUX4tYe0mCl1+a/Fv6pQcBL7+mD/DXs/6jC5Cafc+7AIocAPXu1xx7pka7x3xt0//GAiC/vaCuOuT5lHi+vXsxtDHYUgB4+JYCwMuvTcL4+JHb/xoGALXfB3v6tQdBfPyo7X8yEQmmE49OPlOJz9IRFr82AXr6lmVYm28txOj/82z/3gOAaD9qAGIpQLx8j7yHv8z17/YDQfnJTFNt7HVy1yLrdZE1vtcyWPzSk+Dw8eey/XsMACz7npdv7fca3zPvWHyPvIu/vPXv1QfDSQl7dyDKTkLI70A0NvqwLITFt34C4OUfeh4ff+7b/6kFSKv93+pbz0iv8V0+gnXwraM//GWuf7c+2LskI0s+qaVqZOxMTJ34rAmo1rcmX0/fcgBYsp+Sf8/vfy5+xPYfvf9b37vF93jvHr7HARB/eevfrQ8OLYB8HKGrfP29hST/Vh1wzPdYBnx8/GXu/3PwWx6ADvkeX71a/dYH4Dm//+j177YO5LrE4WPIETx9B5Ge05f95Hdksu6AFt+6EtbiWw4AFt+6DSz9/fe+/UXu/14JGB+/V393IoG+DjE/EWHqzmdev4ts8T1+Fx0fH3+Z+z8+Pr4x5HeJ9XWHguvnNo0CHx8fHx8f//z+Rm4+kOC8wtCP4+Pj4+Pj46/A//Lp/VaagPqxqcfx8fHx8fHxl+tfWYhTWssiBB8fHx8fH9/m/wFAtnWy8chvVgAAAABJRU5ErkJggg==)"></div></div>
+  <div class="copy">
+    <p class="kicker">A DESKTOP ELECTRONIC PET</p>
+    <h1>Vivier</h1>
+    <p class="lede">A ginger tabby that lives on a small screen on your desk. It ages in real time,
+    sleeps when it is night, watches the real Hong Kong weather through its window — and slowly
+    goes downhill if you forget it exists.</p>
+  </div>
+</section>
 
-<a class="card" href="sprites.html"><b>👁 Glance test</b>
-<span>Can you name the pet's condition without reading the label? The question that decides the art.</span></a>
+<h2 class="group">THE DESIGN</h2>
+<div class="cards">
+  <a class="card" href="character.html">
+    <div class="well"><div class="anim thumb" role="img" aria-label="The kitten" style="width:128px;aspect-ratio:1/1;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAAgCAYAAABkS8DlAAAES0lEQVR42u3dsY7TQBCA4bwEVEgnChASLRUSFQ0vQUtJjURLhXgEWiokRElDT30FEhKioKYE2sBaTJjs2Ul2ZzZje/+RVndKHH/O2h7PJraz2RAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEQRAEsd54cPPO9hyvwcfHn59PEETnBUBJQimdHh8ff94+BRg+fqcDgDSzyyd3T0oqJdPi4+Mvw6cAw8fv0JeEIu3QjEumxcfHn79PAYSP37GfZvTr9duhSWJ5fv/2laaTj0zvlQDx8fHjfAowfPxOBwA6AUmy2X58OrSX964PLf3/49XDXSJqlQDx8fHjfAowfPyOfJnpWOLJE1D6m5KQTkTWKgQfHz/OpwDCx+/YTzPQYJ6ApCVcJ6DUJPlYEyA+Pn6cTwGGj9/pAGAqAeXJJ2/6O4gWCRAfHz/OpwDDx1+/v7EkH48TEfDx8eN8CiB8/H79/wnob9y6dmNoU6jAelq3BIiPjx/nU4Dh43fn7xZAEkpqh5JPanraN48uXDoAfz1+yfLQ//PwKcDw51SAHtsH3A/APfZ/wmXGYwlo+/P7XptKQJKEShekhV968Gnhn7oM3r4cfE9dhlZ++q4q0o96/9Hrv3Yf9ChAaj+KXJMfWQBG+14FwJQ9dfCn/w3bf3qBBsaSz+fHz4Y2loQk+chCnJr4W/mlZ0WuzZd5ltxRCr/f7c+7ACnd/9c2AIkegC3Z1wexY76elv6/sBUh+prC3UcM/8D0nP7/99cPQxNUX4tYe0mCl1+a/Fv6pQcBL7+mD/DXs/6jC5Cafc+7AIocAPXu1xx7pka7x3xt0//GAiC/vaCuOuT5lHi+vXsxtDHYUgB4+JYCwMuvTcL4+JHb/xoGALXfB3v6tQdBfPyo7X8yEQmmE49OPlOJz9IRFr82AXr6lmVYm28txOj/82z/3gOAaD9qAGIpQLx8j7yHv8z17/YDQfnJTFNt7HVy1yLrdZE1vtcyWPzSk+Dw8eey/XsMACz7npdv7fca3zPvWHyPvIu/vPXv1QfDSQl7dyDKTkLI70A0NvqwLITFt34C4OUfeh4ff+7b/6kFSKv93+pbz0iv8V0+gnXwraM//GWuf7c+2LskI0s+qaVqZOxMTJ34rAmo1rcmX0/fcgBYsp+Sf8/vfy5+xPYfvf9b37vF93jvHr7HARB/eevfrQ8OLYB8HKGrfP29hST/Vh1wzPdYBnx8/GXu/3PwWx6ADvkeX71a/dYH4Dm//+j177YO5LrE4WPIETx9B5Ge05f95Hdksu6AFt+6EtbiWw4AFt+6DSz9/fe+/UXu/14JGB+/V393IoG+DjE/EWHqzmdev4ts8T1+Fx0fH3+Z+z8+Pr4x5HeJ9XWHguvnNo0CHx8fHx8f//z+Rm4+kOC8wtCP4+Pj4+Pj46/A//Lp/VaagPqxqcfx8fHx8fHxl+tfWYhTWssiBB8fHx8fH9/m/wFAtnWy8chvVgAAAABJRU5ErkJggg==)"></div></div>
+    <h3>The character</h3>
+    <p>Four life stages from a blind newborn to an adult, nine conditions, three reactions — and the
+    paper-doll system they are built from.</p>
+  </a>
+  <a class="card" href="den.html">
+    <div class="well" style="padding:0;overflow:hidden"><div class="anim thumb" role="img" aria-label="The den at night"
+      style="width:100%;aspect-ratio:16/10;border-radius:0;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAACgAAAABkCAYAAABKQWnaAAAfv0lEQVR42u3dT4wk110H8L5HiazsOrN2/ux6beTFJOxi9oC98vInGwMhKHY2YZ0lWssiMWAJEIhD5JBwILEUO+KAIFIQXIgiIU6IGwek3BBXgxCnSInEARQJJEguHAa/Tt7o9dv686q6qrqq+nP4qmZqurprXn3m7U7Nr39vc+nah05FREREREREREREREREREREREREZFnZGAQRERERERERERERERERERERERERBYAiIiIiIiIiIiIiIiIiIiIiIiIiMkUB4I/e+PipiIiIiIiIiIiIiIiIiIiIiIiIiCwrOwWA137uXuWDpth//oHzMmHmct35448//vjjjz/+hD/++ONP+OOPP/6EP/7440/4448//oQ//vjjT/jjj79++xUAAmgC5I8//vjjT/jjjz/+hD/++ONP+OOPP/6EP/7440/4448//oQ//vjjT5ZeADinPPX+d55+9BeeOn32xuXKj8NWC0djZUyNlTE1VsbKmBorY2qsjJUxNVbG1FgZK2NqrIypsTJWxtRYGVNjJcbUWBlTYyXG1FgZU2MlxvRYx2o2HQCHGNQ5nf+U+0vHau7fF3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH389OwAuCeCDbz+RLCZA/vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/7444+/4/E36hLAdQM1RFvF8Dx3XnxDfpgSgMcW/vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/7444+/NfsbrQNgxPbxX/2jnVQh7FuB+vydV+WHUQHNH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PF3XP5GKQCsgvfA287dBxFAAPnjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74E/74428mSwBX4atLUzvKrgDf+fDTlfnf//632q8Nkf/6938+/fu/+ZPBn7fkvLsCPJa2p/zxxx9//PE3Zvibv7+xY/7jz7+//PHHH3/88ccff/zxxx9/7r+4/+L+C3/mP/74448//vjjj79VLgFc13Yyrz7N21EOUYG6tl9AxvgFeO0V0Pzxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff8fkb/ACwCpodQAjwqUArKoKBXBeEyB//PHHH3/r8+c/gPyZ//jjjz/++OOPP/74448//vjjz/0X/sx//PHHH3/88ccff/zxx98ESwA3tZ9sqkLVglwLfP74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/4OvARwHba6fcf8Drj/+/53tlEBzd8Y/trWMeePP/74448//vjjjz/++OOPP/df+OPP/Mcff/zxxx9//PHHH3/88ccff+6/8Gf+swTwLFtQtl38Q0+A++IzAfLHH3/88ccff/wt6xdg/sx//PHHH3/88ccff/zxxx9//PHn/gt//Jn/+OOPP/74448//ma/BHCKMMBrw3esLSj7AMx/qLRA5Y8//vjjjz/++OOPP/7m+gswf/yZ//jjjz/++OOPP/74448//vjjz/0X/sx//PHHH3/8LWwJ4LY2lHXrTx/jO5D+49vf1IJy4Apo/vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448/SwDv+cR1rSir8B0jwFBJGgCmMQHyxx9//PHHH3/88ccff/zxt9YbMPzxZ/7jjz/++OOPP/74448//vjjjz/3X/gz//HHH38LWAK4rR1lW9vJY/oHeIh/hLVA5S/113Xddf74448//vjjjz/++OOPP/74c/+FP/7Mf/zxxx9//PHHH3/88ccff/zx5/4Lf+Y/SwDX7o/Y8pQ8zzFMgPtGBTR//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxx58lgGd3ggCaAPnjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vg7wBLA+2YOAEtaSi4JoPDHH3/8CX/88cef8Mcff8dwA0bMf/zxx5/wxx9//Al//PHHn7j/wh9/5j/hzxLAC6tAfe+V5w6SCHCM5w4/AE1fVwHNH3/8rdVfW/jjz/zHH3/88ccff/zxxx9//PHHH3/uv/Bn/uOPP/74448//vjjjz/++OPPEsCLqcCvqoY1AfLHH3/egcQff+Y//vjjjz/++OOPP/74448//vhz/4U/8x9//PHHH3/88ccff/zxx9/x+lvNEsD7VHIOUYE65msMVYEq6/W3hHcAi/mPP/74E/74OxZ/U7wDjj/+zH/88ccff+6/8Gf+448//vjjjz/3X/gT8x9//PEn7r/wZwlgSzAU73/05vWdqIDmjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vg7rD8FgAU5/+6na7N2gDm8JogmQP74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPv+n8tS4BHL6xphxDC+i1AOyaNnxN1ahDhT/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjj7+eSwCHb+zOCy9Wpg7gISpQA4Rjy9gVqF0BjlEBzR9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxx1+PJYCb8DUhnGMLyqYq0jErUMNj/ufNL+wck34+1xaUpfhShENPgPzxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/z1XAK4L8A5tqCsAhC3XY49/c+/7QywL/62Y8dsQdkV4MnVK9sM3f6Uv2p/8Vj++JvSX/4c/PFn/uOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74O25/fQoA+RvWX20HwBJ8dQiPsQK1DUtfgHnBYfoDMKcK1AiwCmGfCmj++OOPP/74448//u5/Awp//Jn/+Dsmf+lNJP74M//xxx9//PHH3/r85eGPP/Mff/zxxx9//PHHH3/89fOnAHBEgHml66ErUKcCmCM0AfLHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//A3vb9PUevL0Hz9TnKFbUY4BMG99WgKkbunf+PnU74CbqgVlG8Inf+mDO8kB7tMOlb9yj/zxZ/7jjz/++OOPP/74448//vjjjz/++OOPP/74448//vj7Qu+/t/HHn/mPvyX761IgxR9/5r/1+qvsABi+mS74Qp55z0MHrUB94qdebkwJhj4w9wW4T8asQG0CmONrQ9i1Apo//vjjjz/++OOPP/6OyV+X8Mef+Y+/NfjrMw/yx5/5jz/++OOPP/74448//vjjjz/++OOPP/4KlwDugy9HeAiAhwCQA0zXh65bN7qqmrXvH//GAvjA5YtnmXoC5I8//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vhbur85FSDwZ/7jjz/++ONv3f42Ve0n9wV4iBaUTZWkQ/2Ha+kVqG1J4eXp04KyTxtU/vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74429e/qYqAOSvu7/NUPhShHOqQH3bA1das88EORXAqh+mIStQm/CF1AFrS5frzt/8/aUO+eNv6n+A+ePP/Mcff/zxxx9/+/tbwg0Y/sx//PHHH3/88ccff/zxxx9//PHHH3/88ccff/z17AAYvokAaN/MFWC4eDm8sf8AUvoHmEO2oGzDN+UEyB9//PHHH3/88ccff/zxxx9//K3L3xQFqPzxZ/7jj7/h3wDAH3/mP/76/gGYP/7Mf/zxxx9//PHHH38HLAB89YufbMyNxx7cpu1xIYdoQZm3PK274Vx6A6Tk2C4A8/OJnx+yBWUJvn0BloY//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vbxN3UBNH/8mf/444+/Kfzt+wYg/vhb0/yXh79sCeA//rNPV2KK+3OATY9f4hJIeZvHsQGW/ALSdNwQFahN6ErXmW7DV3rdj91f7pA//sx//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/wVdQBsA9UVYFUV6twAtlWA7gtw3wrYeA51zzMmwBxfV4Rdrzt//PHHH3/88cffIQvw+ePP/Mcff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88cffEv1tSttPdm1BuW8byq4ASy70EluQD1mBWtqCsg5fE8I6yEO1P+WPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74m/MShPzxZ/7jjz/++OPvEP42Kb6hK1BzhGNWoA4BMF07PV78sK8JTwQ4xg/AFC0oqxC2AczXpG5bv7rtuvPHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHX3d+mDs5QAFOEcwM4ZAvKKqSlLSi7nu+QAOtaSDbhSytL2/A1VaKG8zlmf0NWQPPHn/mPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/7444+/MfwNHf74M/8N629T2k6yTwvKfVpRTl2A1ffYLhWoXUCWPHafFpQl60gPha8JIX/z8tdWcc0ff/zxxx9//PHHH3/88ccff/zxxx9//M3TX0n448/8xx9//PHHH3/88ccff/zxtz5/k3QAjAinqkCNFy9ezFKATRc9fi1/zNA3YLqkbwVqCb6qFpP59doX4FQV0Pzxxx9//PHHH3/88ccff/zxx994/rreAOSPP/Mff0v3l/8xgT/+zH/88ccff/zxxx9//PHHH3/8HdLfZs03YKauQM3BD92CMq9O7QOwK76YqutlAuznL3fCH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHX5m/ocMff+Y//vjjjz/++JuXv31WXD1Wf5MsAdynFWVXgMee0haUQwBcWgtU/vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/7444+/NfqbrANgyJgVqABOX4HaBWHddeePP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjT/jjj79+/iYtAAz7hwJ48Wf+9Cw//bOfOPocCmAJwqaJhz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjj79+/iZdArhLG8qSCtSAL2zlpLgFZZ82lCXXq0vl6aFaoPLHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//K3J3+QdACPC5z/1K2fbUIkYP68CGAb3zotv7CStQM2/Jj9IGLe8ArUrwtKK4b77+eOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++Ou3/yAFgCm+sL33Gy/dhzIHmIKDbn+AbRCHhjanCZA//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/7442sN/iZfAjgmR5hvf+dD57aD9+VPPbodyFdffmG71rI1p7utS13VgrIuVx86Of35a9cGSXiuktfkjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++BP++OOPP+GPP/76+TtIB8AcYtgftnkF6td+98a2AvXK+Qvbwbzxma9Za7pj2ipQ0/0BzZCZawU0f/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//DHFH3/88Sdr8HfQAsAALWxDC8r087D96187tx24UIkatgFfqD6N27B/zNaIS9ofxqctJkD++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjj791+TvYEsA5wrZtU7tKGS6hajVtJXnzscutyeGF5yh9Pf6EP/7440/4448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448Z/vjjr5+/gy8BnO7P0VVVpoaEysUqjMdagTrk/jEAzrkFKn/88Wc/f/zxxx9//PHHH3/88ccff/39PfOehwbzF56LP/74448//vjjjz/++OOPP/74448//vjr5m8zJ4BV+yPGsA51umZ1VSVqAAuUCZA//vjjiT/++OOPM/74448/+/njj7/p/OWJj/nckxfuS/r1+PjgLm75448//vjjjz/++OOPP/74448//vjjj789CgCHbkE5BMAUYVV7Sm0ptUDljz/++OOPP/7444g//vjjT/jjj7/D+fvea6+cvvnCu88SrZ1+/dY2r3/gHduEj7/72SfOHKbH/NW9X+ePP/74448//vjjjz/++OOPP/74448//ua2BPBQAMNzxJvTsQK1ao3qWIGaI1RperwV0Pzxxx9n/PHHH3/288cff/zZzx9//I3vL6TKXe4vbIPB1GE8nj/++OOPP/74448//vjjjz/++OOPP/74m+ESwEMDzNemTrdVa1ODZgLkjz/+OOOPP/74s58//vjjz37++ONvPH+x6DS6y/3FBHOpv5BwbHwO/vjjjz/++OOPP/74448//vjjjz/++ONvhksAjwEwTVUlqnaUWqDyxx9//PHHH3/8CX/88cef8Mcff9MtQV3lL7eXJ3afrFq+mj/++OOPP/74448//vjjjz/++OOPP/74K1wCOL3AbYkAuxwzJMC6XDl/YWcbBiB8nG6lPEMALA1/wh9//PEn/PHHH3/88ccff/zxt2x/+9grNcgff/zxxx9//PHHH3/88ccff/zxxx9//FVn891v/sFpaSLALscMBbDtdf7itc/ubJ/7xO9vP0630p6hAJa+Hn/CH3/88Sf88ccff/zxxx9//PG3Tn9V7qrs8ccff/zxxx9//PHHH3/88ccff/zxxx9//f1t/ukvXzotTQTY5ZihAJa81pd++97O9tazd7cfp1tpzlAAS1+PP+GPP/74E/74448//vjjjz/++FuXvzp3dfa+cfMcf/zxxx9//PHHH3/88ccff/zxxx9//PHX09/m7rULp6WJALscMxTAmNZzvHyys7344Lu2H6dbqc9QAEtfjz/hjz/++BP++OOPP/74448//vhbrr9gL9ravos82YacvvmVnaQFp3Eb/KUG+eOPP/74448//vjjjz/++OOPP/7444+/8nHeFgB+/tYjRYkASx8/NMDXP/CO7TY8dzjvP3/hicq8/MyVs23I9ccf39l+8oM3D5brP/Lo6S9e/4ni/Nj7Lk6aoQCWvh5//PHHH3/88ccff/zxxx9//PHHH3/L9Zdaq7P3r899eJsqg9Eef/zxxx9//PHHH3/88ccff/zxxx9//PHXz99mSQDj/iaAKb46hEsCODVCEyB//PHHH3/88ccff/zxxx9//PHHH3+lj48Gv/faK9vELpNp0Wn4evz4+//we9tEc/G4+O5z/vjjjz/++OOPP/74448//vjjjz/++ONvRgWAYwMM2zaE4THhG7199dJ22xVhVyxtxwO4ngmQP/74448//vjjjz/++OOPP/7444+/R3bsxOSdJ6O7b331Y9vkhaf88ccff/zxxx9//PHHH3/88ccff/zxx9+MCwCHBBgRNrWgrKpEnUsbyj4Ap0RoAuSPP/74448//vjjjz/++OOPP/7446+LvzqH0VzqLrUXH58ezx9//PHHH3/88ccff/zxxx9//PHHH3/8zawAcEiAYQ3quA51G8C5tqFcAsAhssYJkD/++OOPP/74448//vjjjz/++OOPv3KHbak6jj/++OOPP/74448//vjjjz/++OOPP/7461EAWJoIsMsxaT735IVigBFZTLx5nQJsPNfLJzvbiw++a/txug0YlpJwvmsMf/zxxx9//PHHH3/88ccff/zxxx9/6/IX/Jx+/dYPknWiDEtUx2Wq+eOPP/74448//vjjjz/++OOPP/7444+//bNpq+JMEwF2OSZNAFiHLy5Fk7aZTBNhxq+VvN7QbSgDhENVrm5f/63z7pPtD1vPY8cOf/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/0ymwLAuBxNWmUawcV9XfCN0YYSwPVOgPzxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccffwoAs6RVpAFgqCTdtqGswPetr35s+7Vv3Dx3H8C0KjVdm7oNX3jM7auXttuw5nFbBWq+9vPUAJtevwRh1TrPXQDmxy59AuSPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++Furv8ELAFNwr//4EzvZ7nsLWEBYhS8k4IsAm3KMFah9q1CPqQKaP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OPvWPwNVgBYhe7vbj29k3/5zee3Vagh4bE5vvRr+bEhOeY2iGtbg9oEyB9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxx99ZAeDdaxdOSxMBpvua4AVwecJjY+VpXlWa7g+PrUJYB7H2nC+fnG1DwsWI2wBqiQnnvpbwxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zx1y97dQBsqjjN4d27+L6zRDTpvrr9dQirIDZVoAaE+1agHqTi9C1w+brUVetMzy0BV8nj+OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++Ovnr3cBYIqvDksTwpI04QuJj6tCmLefDAOSr0G9hJReyGObAPnjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//o7d3+bztx45TVMCMDwuAuwCpqolZZq24+sARoR5FWqKMLSdDN/w7auXdgYgvdgPP/bhWaTPhVwqQP74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/4O0AGwb+Xovql73S4VqE0AHrt27yApRakCmj/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjj79RCgDHgtj2ehFgji+g+8mnP7K9kHHbBu3Wc1886OdtME2A/PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9/x+1vc/fahdPSRIDx8xKE+6wt3SXhXLbnePnkbPvLtz+6BRfRPfuRlw5WXTpmpWq42EsNf/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/2yydegrkvEl65DHdei7gNmyFStPR3xRXT59tAVpkNVqKYVqQ++/WQnY1ePDhH++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++mXTBV1dDgUxh5fje+W3Pl2Jb00J0K5efm9jumKcywTIH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHH3wQFgGlFaswY4GLi6+X4wjbgCwhTdF/6wy8vuuK06vMA6+H3v9QKMDymC8IlToD88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/H5m/vJYDbkqLZJ3mlaVXlaboNbRkDxLVWnsbq04CrJHl7yjsvvrGT9GtLaoHKH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PF3rP6KCwAPmbvXLrQCTPFdf/zx7ccRYVyneQ1rTqfrTodENCXwArSnnv9KYyLGuU2A/PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//GUFgOHiriE3Lp9st6F6MnycbkPSi1YFcs6pOvf4faXJq0zzr+VVp3XJjx0z/PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PXLZorq0akqVUNF4+2rl3a2dam6qIeG2XROQ6wfXdqCcqrq0ykqoPnjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//tbqb5NerHARw8dV27kArDu/Lvj6oJwy+1zQKdePHir88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/89SgAzC9a2NZd5D4YhwDYdD5V5z/EwCxxIlniefPHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PE3QAfAfDsEwn0Bdqk4HQofgIefBPnjjz/++OOPP/74448//vjjjz/++OOPP/74448//vjjjz/++OOPP/74448//vgrKABsupglFalNKLsALHmdpvM89olkyefNH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHH3/88ccff/zxxx9//PHHX7f8P2xbCFtGvt9rAAAAAElFTkSuQmCC)"></div></div>
+    <h3>The den</h3>
+    <p>A corner of a Hong Kong flat. Its window follows the real time of day and the Observatory’s
+    weather.</p>
+  </a>
+</div>
 
-<p class="foot">Work in progress — these are throwaway prototypes, not the finished object.
-<a href="https://github.com/wonderjimmy/Vivier">Source and full engineering record on GitHub</a>.</p>
+<h2 class="group">EARLIER PROTOTYPES — FIRST-DRAFT CAT</h2>
+<div class="cards old">
+  <a class="card" href="pet.html"><h3>The pet, live</h3>
+    <p>The simulation running against your clock. Survives a refresh; leave it and come back. Still
+    wears the first, mint-green draft of the cat.</p></a>
+  <a class="card" href="tuning.html"><h3>Tuning viewer</h3>
+    <p>Thirty days on one screen across four care patterns. Neglect kills it in under six days —
+    and so does over-feeding.</p></a>
+</div>
+<footer>A work in progress. These pages are design prototypes, not the finished object —
+<a href="https://github.com/wonderjimmy/Vivier">source and the full engineering record on GitHub</a>.</footer>
 </div></body></html>

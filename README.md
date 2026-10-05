@@ -7,15 +7,17 @@ degrades if you ignore it.
 
 | | |
 |---|---|
-| [**The pet, live**](https://wonderjimmy.github.io/Vivier/pet.html) | Ages against your clock, survives a refresh. Feed / play / clean, then walk away and come back. |
-| [**Tuning viewer**](https://wonderjimmy.github.io/Vivier/tuning.html) | Thirty days on one screen, four care patterns. Neglect kills it in six days — and so does over-feeding. |
-| [**Glance test**](https://wonderjimmy.github.io/Vivier/sprites.html) | Can you name the pet's condition without reading the label? |
+| [**The character**](https://wonderjimmy.github.io/Vivier/character.html) | A ginger tabby from a blind newborn in a basket to an adult: four life stages, nine conditions, three reactions. |
+| [**The den**](https://wonderjimmy.github.io/Vivier/den.html) | A corner of a Hong Kong flat. The window follows the real time of day and the Observatory's weather. |
+| [**The pet, live**](https://wonderjimmy.github.io/Vivier/pet.html) | Earlier prototype: the simulation running against your clock. Survives a refresh. Still wears the first-draft cat. |
+| [**Tuning viewer**](https://wonderjimmy.github.io/Vivier/tuning.html) | Thirty days on one screen, four care patterns. Neglect kills it in under six days — and so does over-feeding. |
 
 ## What this is
 
-The eventual object is dedicated hardware on a desk: an ESP32-S3 with a small 320×240 screen,
-mains-powered, always on. This repo is the software that has to be right *before* any of that gets
-bought — a pure simulation core, plus prototypes for judging whether the thing is any good.
+The object is a small screen that lives on a desk, always on. Version one is a web app on an Android
+tablet; if it earns its place, the screen grows and the interaction deepens. This repo is the
+software that has to be right first — a pure simulation core, plus prototypes for judging whether
+the thing is any good.
 
 The one architectural rule: **the simulation core is pure.** No I/O, no rendering, no hardware, no
 clock, no randomness. Time enters as an argument — the platform tells the core how much time has
@@ -43,10 +45,10 @@ That runs the test suite, three source scans, and a mutation gate that deliberat
 ## Honest status
 
 Working: the simulation core, a golden-vector corpus cross-checked against an independently written
-reference implementation, and the three prototypes above.
+reference implementation, the character and den designs, and the prototypes above.
 
-Not built yet: durable storage, trusted time across power cycles, life stages, illness and death,
-the real browser shell, the finished sprite set, and any hardware at all.
+Not built yet: durable storage, life stages, illness and death in the simulation, the cat walking
+around its den, the live weather feed, and the real app on a tablet.
 
 The pages linked above are **throwaway spikes**, and they say so on their own faces. The live pet's
 save format is disposable — a proper one comes later and will not be compatible.
