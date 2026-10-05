@@ -40,7 +40,7 @@ footer{color:var(--mute);font-size:14px;padding:16px 0}
 `;
 
 const NAV = [
-  ['index.html', 'HOME'], ['character.html', 'CHARACTER'], ['den.html', 'DEN'], ['pet.html', 'LIVE PROTOTYPE'],
+  ['index.html', 'HOME'], ['character.html', 'CHARACTER'], ['den.html', 'DEN'],
 ];
 
 export function shell({ title, description, current, css = '', body }) {

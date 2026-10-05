@@ -17,8 +17,10 @@ const out = process.argv[2];
 if (!out) throw new Error('usage: node spike/publish.mjs <outDir>');
 mkdirSync(out, { recursive: true });
 
+// The first live prototype (spike/live) is not published: it still wears the first-draft cat and
+// was withdrawn at the human's request. Its source stays in the repo.
 for (const builder of ['spike/r1-character/src/build.mjs', 'spike/r2-den/src/build.mjs',
-  'spike/live/src/build.mjs', 'spike/tuning-view/src/build.mjs']) {
+  'spike/tuning-view/src/build.mjs']) {
   execFileSync('node', ['--no-warnings', builder], { stdio: 'pipe' });
 }
 
@@ -70,11 +72,8 @@ const body = `
   </a>
 </div>
 
-<h2 class="group">EARLIER PROTOTYPES — FIRST-DRAFT CAT</h2>
+<h2 class="group">EARLIER PROTOTYPE — FIRST-DRAFT CAT</h2>
 <div class="cards old">
-  <a class="card" href="pet.html"><h3>The pet, live</h3>
-    <p>The simulation running against your clock. Survives a refresh; leave it and come back. Still
-    wears the first, mint-green draft of the cat.</p></a>
   <a class="card" href="tuning.html"><h3>Tuning viewer</h3>
     <p>Thirty days on one screen across four care patterns. Neglect kills it in under six days —
     and so does over-feeding.</p></a>
@@ -87,6 +86,5 @@ writeFileSync(join(out, 'index.html'), shell({
 }));
 copyFileSync('spike/r1-character/dist/character.html', join(out, 'character.html'));
 copyFileSync('spike/r2-den/dist/den.html', join(out, 'den.html'));
-copyFileSync('spike/live/dist/index.html', join(out, 'pet.html'));
 copyFileSync('spike/tuning-view/dist/index.html', join(out, 'tuning.html'));
-console.log(`site assembled in ${out}: index, character, den, pet, tuning`);
+console.log(`site assembled in ${out}: index, character, den, tuning`);

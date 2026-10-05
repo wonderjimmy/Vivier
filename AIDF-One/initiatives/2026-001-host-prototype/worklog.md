@@ -1005,3 +1005,11 @@ than each being independently free.
 - Rejected / Learnings: the browser pane's own width kept changing and clearing the mobile
   emulation mid-check, so a measurement read 0 and another came from the wrong tab. Probing inside
   a fixed-width iframe made the check deterministic.
+
+## [2026-10-05 22:57 HKT] Published site — live prototype withdrawn
+
+- Human: remove the live prototype from the site; it is old (first-draft cat).
+- Removed from the navigation (`spike/lib/page.mjs`) and the landing page, and `publish.mjs` no
+  longer builds or copies it. Source in `spike/live/` is kept. `docs/pet.html` deleted on main.
+- The tuning viewer stays, labelled as the first-draft cat; it also still uses P0's sprites.
+- Verified: no remaining link to `pet.html` in any built page.
