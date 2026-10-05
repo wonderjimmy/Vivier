@@ -9,7 +9,6 @@ degrades if you ignore it.
 |---|---|
 | [**The character**](https://wonderjimmy.github.io/Vivier/character.html) | A ginger tabby from a blind newborn in a basket to an adult: four life stages, nine conditions, three reactions. |
 | [**The den**](https://wonderjimmy.github.io/Vivier/den.html) | A corner of a Hong Kong flat. The window follows the real time of day and the Observatory's weather. |
-| [**The pet, live**](https://wonderjimmy.github.io/Vivier/pet.html) | Earlier prototype: the simulation running against your clock. Survives a refresh. Still wears the first-draft cat. |
 | [**Tuning viewer**](https://wonderjimmy.github.io/Vivier/tuning.html) | Thirty days on one screen, four care patterns. Neglect kills it in under six days — and so does over-feeding. |
 
 ## What this is
