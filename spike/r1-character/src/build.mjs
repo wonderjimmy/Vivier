@@ -11,6 +11,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cat, PALETTE, SICK, FADED, GHOST, EYES, MOUTHS, FX, STAGES } from './cat.mjs';
 import { blank, blit, remap, strip, dataURI } from '../../lib/pixel.mjs';
+import { FONTS, BASE_CSS, shell } from '../../lib/page.mjs';
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 import { N, FRAME_MS, idle, CONDITIONS, REACTIONS, STAGE_ANIMS } from './subjects.mjs';
@@ -22,7 +23,7 @@ function anim(frames, scale, { label = '', note = '' } = {}) {
   const uri = dataURI(strip(imgs), PALETTE, 1);
   const px = 32 * scale;
   return `<figure class="sp">
-    <div class="a" style="width:${px}px;height:${px}px;background-image:url(${uri});background-size:${N * 100}% 100%"></div>
+    <div class="a anim" role="img" aria-label="${label || 'animated cat'}" style="width:${px}px;max-width:100%;aspect-ratio:1/1;background-image:url(${uri})"></div>
     ${label ? `<figcaption><b>${label}</b>${note ? `<span>${note}</span>` : ''}</figcaption>` : ''}
   </figure>`;
 }
@@ -147,52 +148,40 @@ const SECTIONS = {
 
 // ---- page shell -------------------------------------------------------------------------
 
+// Component styles on top of the shared design system (spike/lib/page.mjs) — fonts, colours and
+// the animation rule come from there, so this page and the den page cannot drift apart.
 const CSS = `
-:root{--paper:#f4ede3;--card:#fbf7f0;--line:#e5dacb;--ink:#3b2a26;--mute:#8a7768;--accent:#d2662b}
-*{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.6 Inter,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
-section{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:32px 34px;margin-bottom:22px}
-h1,h2{font-family:Fraunces,Georgia,serif;font-weight:600;letter-spacing:-.01em;margin:0}
-h1{font-size:44px;line-height:1.08;margin:6px 0 14px}
-h2{font-size:24px;margin-bottom:6px}
-h3{font-size:14px;margin:0 0 6px}h4{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:20px 0 8px}
-.kicker{font-family:Silkscreen,monospace;font-size:12px;letter-spacing:.06em;color:var(--accent);margin:0}
-.lede{color:#5d4b43;max-width:68ch;margin:0 0 22px}
-.fine{color:var(--mute);font-size:12.5px;max-width:74ch;margin:18px 0 0}
-.hero{display:flex;gap:40px;align-items:center;flex-wrap:wrap}
-.stage{background:radial-gradient(circle at 50% 40%,#fffaf2,#efe3d2 70%);border-radius:16px;padding:18px;border:1px solid var(--line)}
-.pitch{flex:1;min-width:280px}.pitch p{color:#5d4b43;max-width:46ch}
-.facts{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:6px;font-size:14px;color:#5d4b43}
-.facts b{font-family:Fraunces,Georgia,serif;font-size:18px;color:var(--ink);margin-right:4px}
-.sp{margin:0;text-align:center}
-.sp .a,.sp img{image-rendering:pixelated;display:block;margin:0 auto;animation:sp ${(N * FRAME_MS) / 1000}s steps(${N},jump-none) infinite}
-.sp img{animation:none}
-@keyframes sp{from{background-position:0 0}to{background-position:100% 0}}
-figcaption{margin-top:8px;font-size:12px;line-height:1.35}figcaption b{display:block;font-family:Silkscreen,monospace;font-weight:400;letter-spacing:.04em}
-figcaption span{color:var(--mute);display:block;max-width:22ch;margin:2px auto 0}
-.row{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}.arrow{color:#c4b4a2;font-size:22px;padding-bottom:70px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:22px 12px}
-.glance{display:flex;gap:16px;flex-wrap:wrap;padding:20px;background:#efe5d7;border-radius:12px}
-.sys{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:26px}
-.sys>div{border-top:2px solid var(--line);padding-top:14px}.sys p{font-size:13.5px;color:#5d4b43}
-.sys .sp{display:inline-block;margin:4px 6px 0 0}
-.stamps{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
-.stamp{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;color:var(--mute)}
+h4{font:13px/1.4 var(--label);letter-spacing:.06em;color:var(--mute);margin:22px 0 10px}
+.hero{display:flex;gap:44px;align-items:center;flex-wrap:wrap}
+.stage{background:var(--well);border-radius:20px;padding:22px;border:1px solid var(--line);max-width:100%}
+.pitch{flex:1;min-width:260px}.pitch p{color:var(--mute);max-width:46ch;font-size:17px}
+.facts{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:6px;font-size:15px;color:var(--mute)}
+.facts b{font:800 24px/1 var(--display);color:var(--ink);margin-right:6px}
+.sp{margin:0;text-align:center;max-width:100%}
+.sp .a,.sp img{display:block;margin:0 auto}
+figcaption{margin-top:10px;font-size:14px;line-height:1.4}
+figcaption b{display:block;font:13px/1.4 var(--label);letter-spacing:.04em}
+figcaption span{color:var(--mute);display:block;max-width:24ch;margin:2px auto 0}
+.row{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}.arrow{color:#b9a690;font-size:24px;padding-bottom:80px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:28px 14px}
+.glance{display:flex;gap:18px;flex-wrap:wrap;padding:22px;background:var(--well);border-radius:14px}
+.sys{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px}
+.sys>div{border-top:2px solid var(--line);padding-top:16px}.sys p{font-size:15px;color:var(--mute)}
+.sys .sp{display:inline-block;margin:4px 8px 0 0}
+.stamps{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.stamp{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--mute)}
 .stamp img{image-rendering:pixelated;border:1px solid var(--line);border-radius:4px}
-.sw{display:flex;flex-wrap:wrap;gap:10px}
-.sw div{display:grid;grid-template-columns:34px auto;column-gap:8px;font-size:11.5px;align-items:center}
-.sw i{grid-row:span 2;width:34px;height:34px;border-radius:8px;border:1px solid #0000001a}
-.sw code{font-size:11px}.sw span{color:var(--mute)}
-.why{padding-left:20px;margin:0;display:grid;gap:12px;max-width:80ch}.why li{color:#5d4b43}.why b{color:var(--ink)}
-@media (max-width:640px){h1{font-size:34px}section{padding:22px 18px}}
+.sw{display:flex;flex-wrap:wrap;gap:12px}
+.sw div{display:grid;grid-template-columns:40px auto;column-gap:10px;font-size:13px;align-items:center}
+.sw i{grid-row:span 2;width:40px;height:40px;border-radius:10px;border:1px solid rgba(0,0,0,.1)}
+.sw code{font-size:12.5px;color:var(--mute)}
+.why{padding-left:22px;margin:0;display:grid;gap:14px;max-width:80ch}.why li{color:var(--mute)}.why b{color:var(--ink)}
 `;
 
-const FONTS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;600&family=Silkscreen&display=swap">';
 
 const page = (title, inner, card = null) => `${card ? `<!-- @dsCard group="${card}" -->\n` : ''}<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${title}</title>${FONTS}<style>${CSS}</style></head><body><div class="wrap">${inner}</div></body></html>`;
+<title>${title}</title>${FONTS}<style>${BASE_CSS}${CSS}</style></head><body><div class="wrap">${inner}</div></body></html>`;
 
 const section = (key) => {
   const s = SECTIONS[key];
@@ -201,13 +190,19 @@ const section = (key) => {
 
 mkdirSync(join(OUT, 'cards'), { recursive: true });
 writeFileSync(join(OUT, 'sheet.html'), page('Vivier — character design', Object.keys(SECTIONS).map(section).join('')));
+writeFileSync(join(OUT, 'character.html'), shell({
+  title: 'Vivier — the character',
+  description: 'Character design for Vivier, a desktop electronic pet: a ginger tabby in four life stages, nine conditions and three reactions.',
+  current: 'character.html', css: CSS,
+  body: Object.keys(SECTIONS).map(section).join(''),
+}));
 for (const key of Object.keys(SECTIONS)) {
   writeFileSync(join(OUT, 'cards', `${key}.html`), page(`Vivier — ${SECTIONS[key].title}`, section(key), SECTIONS[key].group));
 }
 
 // Budget evidence: what the art actually costs under this model.
 const stampCount = Object.keys(EYES).length + Object.keys(MOUTHS).length + Object.keys(FX).length;
-console.log(`stages: ${Object.keys(STAGES).length} geometries (data) + 1 egg generator`);
+console.log(`stages: ${Object.keys(STAGES).length} geometries (data) + 1 newborn generator`);
 console.log(`hand-drawn stamps: ${stampCount} (eyes ${Object.keys(EYES).length}, mouths ${Object.keys(MOUTHS).length}, effects ${Object.keys(FX).length})`);
 console.log(`conditions: ${CONDITIONS.length}, frames per loop: ${N}`);
-console.log(`wrote dist/sheet.html and ${Object.keys(SECTIONS).length} cards`);
+console.log(`wrote dist/character.html, dist/sheet.html and ${Object.keys(SECTIONS).length} cards`);

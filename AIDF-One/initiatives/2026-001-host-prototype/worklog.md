@@ -984,3 +984,24 @@ than each being independently free.
   adult" (ADR-006 / newborn) and the network line (ADR-008).
 - The R2 den concept was drawn at 160×100 under this assumption; it is now the decided canvas.
 - The ESP32 is not rejected: ADR-001's corpus and ADR-002's integer-only core keep a later port cheap.
+
+## [2026-10-05 22:49 HKT] Published — the character and the den as GitHub Pages
+
+- branch: `initiative/2026-001-host-prototype` (source) → `main` `docs/` (published copy)
+- Human: turn the Design-canvas artifact into HTML pages on GitHub Pages.
+- New `spike/lib/page.mjs`: one design system for every published page (tokens from the cat's
+  palette, Bricolage Grotesque / IBM Plex Sans / Silkscreen, page shell with navigation), so the
+  pages cannot drift into separate looks. The character builder moved onto it — dropping the
+  Inter body face and the radial-gradient spotlight the canvas's design rules had already ruled out.
+- New `spike/publish.mjs <outDir>`: rebuilds every page from source and assembles the site. It
+  replaces hand-copying spike builds into `docs/`, the drift R3 named — the first slice of R3's
+  "one build writes docs/".
+- Site: `index` (rebuilt in the same system), `character` (R1), `den` (R2), and the earlier
+  `pet` and `tuning` prototypes, labelled as the first-draft cat. `sprites.html` (P0's mint cat)
+  is retired — superseded by the character page's glance test.
+- Verified, not assumed: each page loaded in a fixed-width iframe at 360 and 320 px — no
+  horizontal overflow on any; the den's hero scene keeps 16:10 (258×161 on a phone, 950×594 at
+  1280); every landing-page link resolves to a file in the site.
+- Rejected / Learnings: the browser pane's own width kept changing and clearing the mobile
+  emulation mid-check, so a measurement read 0 and another came from the wrong tab. Probing inside
+  a fixed-width iframe made the check deterministic.

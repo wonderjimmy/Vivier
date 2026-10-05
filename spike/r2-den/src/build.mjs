@@ -11,6 +11,7 @@ import { den, PALETTE, W, H } from './den.mjs';
 import { cat, withFx } from '../../r1-character/src/cat.mjs';
 import { N, idle, CONDITIONS } from '../../r1-character/src/subjects.mjs';
 import { blank, blit, encodePNG, toRGBA } from '../../lib/pixel.mjs';
+import { shell } from '../../lib/page.mjs';
 
 const OUT = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const sleeping = CONDITIONS.find((c) => c.id === 'sleeping').frames;
@@ -63,15 +64,59 @@ for (const v of VARIANTS) {
   uris[v.id] = `data:image/png;base64,${png.toString('base64')}`;
 }
 
-// local preview, animated with the same CSS steps() technique as the character sheet
-const html = `<!doctype html><html><head><meta charset="utf-8"><title>Vivier — the den</title><style>
-body{margin:0;padding:24px;background:#1c1f24;color:#e8e3da;font:14px/1.5 system-ui,sans-serif}
-.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:24px}
-.s{width:480px;height:300px;image-rendering:pixelated;background-repeat:no-repeat;background-size:${N * 100}% 100%;
-   animation:sp 2.4s steps(${N},jump-none) infinite;border-radius:6px}
-@keyframes sp{from{background-position:0 0}to{background-position:100% 0}}
-b{display:block;margin-top:8px}span{color:#a39b8e}</style></head><body><div class="g">${
-  VARIANTS.map((v) => `<div><div class="s" style="background-image:url(${uris[v.id]})"></div><b>${v.label}</b><span>${v.note}</span></div>`).join('')
-}</div></body></html>`;
-writeFileSync(join(OUT, 'den.html'), html);
-console.log(`wrote ${VARIANTS.length} strips (${W * N}x${H}) and dist/den.html`);
+// The published page, on the shared design system (spike/lib/page.mjs).
+const byId = Object.fromEntries(VARIANTS.map((v) => [v.id, v]));
+const scene = (id, scale, extra = '') =>
+  `<div class="anim scene" role="img" aria-label="${byId[id].label}: ${byId[id].note}" style="width:${W * scale}px;background-image:url(${uris[id]})${extra}"></div>`;
+const CSS = `
+.scene{max-width:100%;aspect-ratio:16/10;border-radius:4px;display:block}
+.tablet{background:#1d1c21;border-radius:36px;padding:clamp(12px,3vw,30px);display:inline-block;max-width:100%}
+.center{display:flex;justify-content:center}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:34px 32px}
+.vgrid b{display:block;font:13px/1.4 var(--label);letter-spacing:.04em;margin-top:12px}
+.vgrid span{display:block;color:var(--mute);font-size:15px;margin-top:2px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:28px}
+.cols>div{border-top:2px solid var(--line);padding-top:16px}.cols p{color:var(--mute);font-size:15px;margin:0}
+table{border-collapse:collapse;font-size:14px;margin-top:10px}td{padding:4px 14px 4px 0;color:var(--mute)}td:first-child{color:var(--ink);font-weight:500}
+`;
+const body = `
+<section>
+  <p class="kicker">R2 · THE DEN</p>
+  <h1>A corner of a Hong Kong flat.</h1>
+  <p class="lede">The cat’s whole world: a bed, a bowl, a lamp, and a window onto the real time of
+  day and the Observatory’s weather. At night it sleeps under the lamp while the city stays awake
+  outside.</p>
+  <div class="center"><div class="tablet">${scene('night', 6)}</div></div>
+</section>
+<section>
+  <h2>The window tells the truth</h2>
+  <p class="lede">Sky, light and the city follow the device’s clock. Weather comes from one read-only
+  Hong Kong Observatory feed. If that feed fails or goes stale, the window shows only the time of
+  day — never a guessed sky.</p>
+  <div class="vgrid">${['day', 'dusk', 'rain', 'storm'].map((id) =>
+    `<div>${scene(id, 3)}<b>${byId[id].label.toUpperCase()}</b><span>${byId[id].note}</span></div>`).join('')}</div>
+</section>
+<section>
+  <h2>How it is built</h2>
+  <div class="cols">
+    <div><h3>One pixel size, any screen</h3><p>The room is 160 × 100 pixels, cat included, drawn at the
+      largest whole-number scale the screen allows — so it stays crisp from a small tablet up to a
+      monitor.</p>
+      <table><tr><td>1280 × 800</td><td>×8</td></tr><tr><td>1920 × 1200</td><td>×12</td></tr>
+      <tr><td>2560 × 1600</td><td>×16</td></tr><tr><td>1920 × 1080</td><td>×12, edges cropped</td></tr></table></div>
+    <div><h3>Light in two zones</h3><p>At night the room drops to a cool dark, the lamp throws a warm
+      pool over the bed, and a clear sky leaves a patch of moonlight on the floor. The edges are
+      dithered, as pixel art should be, rather than blurred.</p></div>
+    <div><h3>Weather is scenery</h3><p>It changes what the window shows and never what the cat is.
+      Hunger, health and mood come only from time and care, so a month of the pet’s life can still be
+      replayed exactly.</p></div>
+    <div><h3>Places to be</h3><p>The bed, the rug and the window are spots the cat can occupy. Walking
+      between them needs a side-view walk the character does not have yet — the next piece of art.</p></div>
+  </div>
+</section>`;
+writeFileSync(join(OUT, 'den.html'), shell({
+  title: 'Vivier — the den',
+  description: 'The den for Vivier, a desktop electronic pet: a Hong Kong flat whose window follows the real time and weather.',
+  current: 'den.html', css: CSS, body,
+}));
+console.log(`wrote ${VARIANTS.length} strips (${W * N}x${H}) and dist/den.html (published page)`);
